@@ -1,68 +1,622 @@
-# Abstract {.unnumbered .unlisted}
+---
+title: Best practices for your confirmatory factor analysis
+subtitle: A JASP and lavaan tutorial
+author:
+  - name: Pablo Rogers
+    orcid: 0000-0002-0093-3834
+    corresponding: true
+    email: pablorogers@ufu.br
+    affiliations:
+      - Universidade Federal de Uberlândia
+keywords:
+  - Confirmatory Factor Analysis
+  - Structural Equation Modeling
+  - Internal Structural Validity
+  - JASP
+  - lavaan
+abstract: |
+  Confirmatory factor analysis (CFA) is a fundamental method for evaluating the internal structural validity of measurement instruments. In most CFA applications, the measurement model serves as a means to an end rather than an end in itself. To select the appropriate model, prior validity evidence is crucial, and items are typically assessed on an ordinal scale, which has been used in the applied social sciences. However, textbooks on structural equation modeling (SEM) often overlook this specific case, focusing on applications estimable using maximum likelihood (ML) instead. Unfortunately, several popular commercial SEM software packages lack suitable solutions for handling this ‘typical CFA’, leading to confusion and suboptimal decision-making when conducting CFA in this context. This article conceptually contributes to this ongoing discussion by presenting a set of guidelines for conducting a typical CFA, drawing from recent empirical research. We provide a practical contribution by introducing and developing a tutorial example within the JASP and lavaan software platforms. Supplementary materials such as videos, files, and scripts are freely available.
+#plain-language-summary: |
+#  Earthquake data for the island of La Palma from the September 2021 # eruption is found ...
+# key-points:
+#  - CFA is essential for assessing the internal structural validity of measurement instruments.
+#  - JASP and lavaan offer robust tools for conducting CFA with ordinal data.
+date: 03/13/2024
+bibliography: references.bib
+citation:
+  container-title: Best practices for your CFA
+number-sections: true
+---
 
-<br>
+## Introduction
 
-This document is a deployment of the **ARTE: Article Reproducibility Template & Environment**. It serves as an example of how the template can be used and showcases its features. This template provides a structured framework for creating **dynamic and fully reproducible research articles** using [**Quarto**](https://quarto.org), integrated with [**RStudio**](https://posit.co/download/rstudio-desktop/), [**Git/GitHub**](https://git-scm.com/), and designed for sharing on platforms like [**OSF**](https://osf.io/) and [**GitHub Pages**](https://docs.github.com/pages).
+### Reading the lavaan and other packages ###
 
-The template is organized according to the [**TIER Protocol 4.0**](https://www.projecttier.org/tier-protocol/protocol-4-0/), ensuring clarity and reproducibility. It is pre-configured for environment management using [**renv**](https://rstudio.github.io/renv/) and [**Docker**](https://www.docker.com/), guaranteeing that the computational environment is consistent and reproducible both locally and in the cloud via [**MyBinder**](https://mybinder.org/). This example demonstrates the integration of narrative text, executable R code, and outputs (like tables and figures) within a single, cohesive document.
-
-This deployment illustrates the project structure and the use of [**Quarto's book format**](https://quarto.org/docs/books/). It is not a research article on a specific topic but a guide on how to use the template itself.
-
-**Key-words:** Open Science, Reproducibility, [Quarto](https://quarto.org), [TIER Protocol 4.0](https://www.projecttier.org/tier-protocol/protocol-4-0/), [R language](https://cran.r-project.org/), [RStudio](https://posit.co/download/rstudio-desktop/), [Git](https://git-scm.com/), [GitHub](https://github.com/), [renv package](https://rstudio.github.io/renv/), [Docker](https://www.docker.com/), [**MyBinder**](https://mybinder.org/),  [GitHub Pages](https://pages.github.com/), [OSF](https://osf.io/).
-
-<br>
-
-::: {.content-visible unless-format="pdf"}
-{{< video https://youtu.be/3YeX4G1w61E >}}
-:::
-
-<br>
-
-**How cite this template?**
-
-Rogers, P., & Limongi, R. (2025). Open Science in Three Acts: Foundations, Practice, and Implementation - Third Act. *BAR - Brazilian Administration Review*, *22*(3),e250162. <https://doi.org/10.1590/1807-7692bar2025250162>
-
-::: {.content-visible unless-format="pdf"}
-**BibTex:**
-
-``` r
-@article{rogers2025,
-  title = {Open Science in Three Acts: Foundations, Practice, and Implementation - Third Act},
-  author = {Rogers, Pablo and Limongi, Ricardo},
-  year = {2025},
-  journal = {BAR - Brazilian Administration Review},
-  volume = {22},
-  number = {3},
-  pages = {e250162},
-  issn = {1807-7692},
-  doi = {10.1590/1807-7692bar2025250162},
-}
+```{r}
+library(lavaan)
+library(semTools)
+library(semPlot)
+library(psych)
+library(simsem)
+library(MASS)
+library(writexl)
+library(dynamic)
 ```
-:::
 
-<br>
+### Environment preparation
 
-**We also recommend reading:**
+```{r}
+options(max.print=1000000) # Increasing the number of lines in the output
+set.seed(123456)
+```
+###### Step 1: ETL ######
 
-Limongi, R., & Rogers, P. (2025). Open Science in Three Acts: Foundations, Practice, and Implementation - Second Act. *BAR - Brazilian Administration Review*, *22*(2), e250116. <https://doi.org/10.1590/1807-7692bar2025250116>
+### References
+Article:
+  # Rogers, P. (2022). Best Practices for Your Exploratory Factor Analysis: 
+  # A Factor Tutorial. Revista de Administração Contemporânea, 26(6).
+  # https://doi.org/10.1590/1982-7849rac2022210085.en
+ ## Database:
+  # Rogers, P. (2021). Data for “Best Practices for Your Exploratory Factor Analysis: 
+  # A Factor Tutorial.” RAC-Revista de Administração Contemporânea. Mendeley Data, V2.
+  # https://doi.org/10.17632/rdky78bk8r.2
 
-Limongi, R., & Rogers, P. (2025). Open Science in Three Acts: Foundations, Practice, and Implementation - First Act. *BAR - Brazilian Administration Review*, *22*(1), e250079. <https://doi.org/10.1590/1807-7692bar2025250079>
+## Reading the database directly from the internet
 
-<br>
+```{r}
+ # Defining the database URL
+url_data <- "https://data.mendeley.com/datasets/rdky78bk8r/2/files/b58a7054-4978-4239-81db-00f9efd86e44/WHOQOL_Data.dat"
+ # Reading data without variable names
+df0 <- read.table(url_data)
+ # Defining the URL of variable names
+url_labels <- "https://data.mendeley.com/datasets/rdky78bk8r/2/files/ae2a5c01-2fc2-43e5-b31c-8db8cc5bff8a/WHOQOL_Labels.txt"
+ # Reading variable names in the first column
+column_labels <- read.table(url_labels)
+ # Extracting the first column
+column_labels <- column_labels$V1
+ # Assigning variable names
+names(df0) <- column_labels
+```
 
-::: {.content-visible unless-format="pdf"}
-**Summary of editorials:**
+## Viewing the database
+```{r}
+head(df0)
+names(df0)
+str(df0)
+describe(df0)
+```
 
-See a conceptual summary of these three editorials **[HERE](https://phdpablo.github.io/arte-showcase/)**
+#### Population Model ####
 
-<br>
+## for Dynamic Fit Index (DFI) calculation and a priori Power Analysis (see below)
+## Considering the model resulting from the meta-analysis by Lin and Yao (2022): popModel
+ # Lin, L.-C., & Yao, G. (2022). Validation of the factor structure of 
+ # the WHOQOL-BREF using meta-analysis of exploration factor analysis and 
+ # social network analysis. Psychological Assessment, 34(7), 660–670.
+ # https://doi.org/10.1037/pas0001122
+## Considering the ordinal nature of the variables
+ # for this I consider the thresholds (t) to be equidistant distributed (linearity): 12%,23%,31%,12%
+ # it is unlikely that we will have the thersholds available in any previous study;
+ # but if a response frequency is available, for each of the classes, on each of the response items,
+ # you can find the thresholds from the inverse of normal distribution.
+ # Equidistant thresholds considering a 5-point Likert scale (1 to 5) are: -1.2/-.4/.4/1.2
+## Using the factor loadings obtained from Lin and Yao (2022) can be questioned, 
+ # as most research in the meta-analysis used the criticized default combination
+ # (principal components + Kaiser criterion + varimax rotation) - see Rogers (2022).
+ # and more... it is evidence coming from an EFA: not a CFA!
+## Consider the example (popModel) for teaching purposes
+ # Perhaps you will find a robust survey in your country, which made use of WHOQOL, 
+ # using CFA for ordinal data (or not!), and have better starting points.
 
-**For Portuguese-speaking audiences**
+```{r}
+popModel <- '
+ # define factors and set loadings according to Lin and Yao (2022)
+psycho =~ 0.92*Q5_P + 0.81*Q6_P + 0.94*Q7_P + 0.73*Q11_P + 0.75*Q19_P + 0.63*Q26_P
+physical =~ 0.84*Q3_F + 0.83*Q4_F + 0.63*Q10_F + 0.71*Q15_F + 0.68*Q16_F 
+            + 0.89*Q17_F + 0.61*Q18_F
+social =~ 0.94*Q20_S + 0.89*Q21_S + 0.78*Q22_S
+environment =~ 0.37*Q8_A + 0.49*Q9_A + 0.79*Q12_A + 0.81*Q13_A + 0.77*Q14_A
+               + 0.75*Q23_A + 0.64*Q24_A + 0.73*Q25_A
+ # set the maximum acceptable correlation between Q4 and Q3
+Q4_F ~~ 0.3*Q3_F
+ # set factor variances to 1 and correlations to 0.3
+ # according to Lin and Yao (2022), correlations between factors ranged from 0.08 to 0.3
+psycho ~~ 1*psycho + 0.3*physical + 0.3*social + 0.3*environment
+physical ~~ 1*physical + 0.3*social + 0.3*environment
+social ~~ 1*social + 0.3*environment
+environment ~~ 1*environment
+ # set all item residual variances according defined loadings (1-L^2)
+ # except Q3 and Q4 due to the predicted correlation between the two
+Q5_P ~~ 0.15*Q5_P
+Q6_P ~~ 0.34*Q6_P
+Q7_P ~~ 0.12*Q7_P
+Q11_P ~~ 0.47*Q11_P
+Q19_P ~~ 0.44*Q19_P
+Q26_P ~~ 0.6*Q26_P
+Q10_F ~~ 0.6*Q10_F
+Q15_F ~~ 0.5*Q15_F
+Q16_F ~~ 0.54*Q16_F
+Q17_F ~~ 0.21*Q17_F
+Q18_F ~~ 0.63*Q18_F
+Q20_S ~~ 0.12*Q20_S
+Q21_S ~~ 0.21*Q21_S
+Q22_S ~~ 0.39*Q22_S
+Q8_A ~~ 0.86*Q8_A
+Q9_A ~~ 0.76*Q9_A
+Q12_A ~~ 0.38*Q12_A
+Q13_A ~~ 0.34*Q13_A
+Q14_A ~~ 0.41*Q14_A
+Q23_A ~~ 0.44*Q23_A
+Q24_A ~~ 0.59*Q24_A
+Q25_A ~~ 0.47*Q25_A
+ # set thresholds
+Q5_P | -1.2*t1
+Q5_P | -0.4*t2
+Q5_P | 0.4*t3
+Q5_P | 1.2*t4
+Q6_P | -1.2*t1
+Q6_P | -0.4*t2
+Q6_P | 0.4*t3
+Q6_P | 1.2*t4
+Q7_P | -1.2*t1
+Q7_P | -0.4*t2
+Q7_P | 0.4*t3
+Q7_P | 1.2*t4
+Q11_P | -1.2*t1
+Q11_P | -0.4*t2
+Q11_P | 0.4*t3
+Q11_P | 1.2*t4
+Q19_P | -1.2*t1
+Q19_P | -0.4*t2
+Q19_P | 0.4*t3
+Q19_P | 1.2*t4
+Q26_P | -1.2*t1
+Q26_P | -0.4*t2
+Q26_P | 0.4*t3
+Q26_P | 1.2*t4
+Q3_F | -1.2*t1
+Q3_F | -0.4*t2
+Q3_F | 0.4*t3
+Q3_F | 1.2*t4
+Q4_F | -1.2*t1
+Q4_F | -0.4*t2
+Q4_F | 0.4*t3
+Q4_F | 1.2*t4
+Q10_F | -1.2*t1
+Q10_F | -0.4*t2
+Q10_F | 0.4*t3
+Q10_F | 1.2*t4
+Q15_F | -1.2*t1
+Q15_F | -0.4*t2
+Q15_F | 0.4*t3
+Q15_F | 1.2*t4
+Q16_F | -1.2*t1
+Q16_F | -0.4*t2
+Q16_F | 0.4*t3
+Q16_F | 1.2*t4
+Q17_F | -1.2*t1
+Q17_F | -0.4*t2
+Q17_F | 0.4*t3
+Q17_F | 1.2*t4
+Q18_F | -1.2*t1
+Q18_F | -0.4*t2
+Q18_F | 0.4*t3
+Q18_F | 1.2*t4
+Q20_S | -1.2*t1
+Q20_S | -0.4*t2
+Q20_S | 0.4*t3
+Q20_S | 1.2*t4
+Q21_S | -1.2*t1
+Q21_S | -0.4*t2
+Q21_S | 0.4*t3
+Q21_S | 1.2*t4
+Q22_S | -1.2*t1
+Q22_S | -0.4*t2
+Q22_S | 0.4*t3
+Q22_S | 1.2*t4
+Q8_A | -1.2*t1
+Q8_A | -0.4*t2
+Q8_A | 0.4*t3
+Q8_A | 1.2*t4
+Q9_A | -1.2*t1
+Q9_A | -0.4*t2
+Q9_A | 0.4*t3
+Q9_A | 1.2*t4
+Q12_A | -1.2*t1
+Q12_A | -0.4*t2
+Q12_A | 0.4*t3
+Q12_A | 1.2*t4
+Q13_A | -1.2*t1
+Q13_A | -0.4*t2
+Q13_A | 0.4*t3
+Q13_A | 1.2*t4
+Q14_A | -1.2*t1
+Q14_A | -0.4*t2
+Q14_A | 0.4*t3
+Q14_A | 1.2*t4
+Q23_A | -1.2*t1
+Q23_A | -0.4*t2
+Q23_A | 0.4*t3
+Q23_A | 1.2*t4
+Q24_A | -1.2*t1
+Q24_A | -0.4*t2
+Q24_A | 0.4*t3
+Q24_A | 1.2*t4
+Q25_A | -1.2*t1
+Q25_A | -0.4*t2
+Q25_A | 0.4*t3
+Q25_A | 1.2*t4
+'
+```
 
-See this overview of ARTE implementation presented by Professor Pablo Rogers:
+## Dynamic Fit Index
+ # Patient! It takes a while due to simulations
+dynamic::catHB(popModel, manual = T, n = 1047, plot = T)
+ # These cutoff were valid for all subsequent analyses, 
+ # as we are assuming that popModel is the correct population model
+## We could calculate a DFI for each of the estimated models, 
+ # assuming that the model in question would be the correct population model, 
+ # as is usually the case (see the referenced McNeish and Wolf papers).
+ # But in this case, we would lose comparability, as to date, we do not have DFI for bicfator models.
+ # and DFI for hierarchical models are in progress.
 
-{{< video https://youtu.be/tgZNCq9AW_s?si=XLpkqI7H699c6Qx8 >}}
+###### 4F model ######
 
-Learn a little about the tools used in ARTE in the course [Future-Proof Article: Open Science Journey in Practice](https://phdpablo.github.io/curso-open-science/)
+### Step 2: Model Specification ###
+ # Endogenous variables are correlated by default
+ # The items Q3, Q4 and Q26 have already been reversed
+ # With items Q4 and Q3 correlated
 
-:::
+```{r}
+model.SPE1 <- '
+psycho =~ Q5_P + Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+Q4_F ~~ Q3_F
+'
+```
+
+### Step 3: Model Estimation ###
+ # With the CFA function
+ # With WLSMV/DWLS estimator
+ # Fixing the variance to standardize the factor scale
+ # All items are ordinal
+
+```{r}
+model.EST1 <- cfa(
+                  model.SPE1, data = df0, 
+                  ordered = TRUE, # all ordinal items
+                  std.lv = TRUE, # factors scale
+                  estimator = "WLSMV" # estimator
+                 )
+```
+### Step 4: Model Evaluation ###
+ # Be careful with Heywood cases: Std.all > 1 or variance < 0 
+ # Look at SRMR, RMSEA and CFI to assess overall fit
+ # Look at standardized estimates, residual correlations, and MI to assess local fit
+
+```{r} 
+summary(model.EST1, fit.measures = TRUE, 
+         standardized = TRUE, rsq = TRUE)
+```
+## Modification indices (MI)
+```{r}
+modificationindices(model.EST1, sort. = TRUE,
+                    minimum.value = 3.84,
+                    maximum.number = 20
+                    )
+```
+## Residual correlations
+```{r}
+residuals(model.EST1, type = "cor") # look for "cor" > 0.1 
+residuals(model.EST1, type = "standardized")$cov # look for |z| > 2.4
+```
+## Reliability coefficient (must be > .7)
+ # alpha = Cronbach's ; omega = composite reliability; omega2 = Bentler's
+ # omega3 = McDonald's ; avevar = AVE (average variance extracted > 0.5)
+```{r}
+semTools::reliability(model.EST1)
+```
+## Preliminary evaluation
+ # The overall fit was mediocre, compatible with a Level 2 of misspecification 
+ # Local indices indicated:
+   # high correlation between physical and psychological
+   # low factor loading of Q4 and Q24
+   # Warning: we may have problems with Q5 (it is the cause of many high MI)
+
+## Model Diagram 1
+```{r}
+semPlot::semPaths(object = model.EST1, 
+                  what = "std",
+                  style = "lisrel",
+                  intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+                  edge.label.cex = 0.6,  label.cex= 1.3,
+                  weighted= FALSE,
+                  edge.color = "black",
+                  node.width = 0.6,
+                  )
+```
+## Model Diagram 2
+```{r}
+semPaths(model.EST1, what = "std",
+         style = "lisrel",  layout = "circle",
+         intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+         edge.label.cex = 1, label.cex= 1,
+         weighted= FALSE,
+         mar = c(1.5,0.8,3,0.3),
+         )
+```
+###### 4F bifactor ######
+
+### Step 2: Model Specification ###
+ # Endogenous variables are not correlated
+ # Items Q3, Q4 and Q26 have already been reversed
+ # Without considering the correlated items Q4 and Q3 (the G factor affects both items)
+ # Without item Q5 due to convergence problems
+ # The G factor (QOL) must be first in the model specification
+
+model.SPE2 <- '
+QOL =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P +
+       Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F +
+       Q20_S + Q21_S + Q22_S +
+       Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+'
+### Step 3: Model Estimation ###
+ # With the CFA function
+ # With WLSMV/DWLS estimator
+ # Fixing the variance to standardize the factor scale
+ # All items are ordinal
+
+model.EST2 <- cfa(model.SPE2, data = df0, 
+                  orthogonal = TRUE, # uncorrelated factors
+                  ordered = TRUE, # all ordinal items
+                  std.lv = TRUE, # factors scale
+                  estimator = "WLSMV" # estimator
+                 )
+
+### Step 4: Model Evaluation ###
+ # Be careful with Heywood cases: Std.all > 1 or variance < 0 
+ # Look at SRMR, RMSEA and CFI to assess overall fit
+ # Look at standardized estimates, residual correlations, and MI to assess local fit
+
+summary(model.EST2, fit.measures = TRUE, 
+        standardized = TRUE, rsq = TRUE
+        )
+
+## Modification indices (MI)
+modificationindices(model.EST2, sort. = TRUE,
+                    minimum.value = 3.84,
+                    maximum.number = 20
+                    )
+
+## Residual correlations
+residuals(model.EST2, type = "cor") # look for "cor" > 0.1 
+residuals(model.EST2, type = "standardized")$cov # look for |z| > 2.4
+
+## Reliability coefficient (must be > .7)
+ # For the G factor it must be:
+psych::omegaFromSem(fit = model.EST2)
+
+## Preliminary Evaluation
+ # Overall Fit has improved, but also mediocre (Level 2 of DFI)
+ # The G factor is statistically relevant and explains a lot of the observed variables
+ # The psycho factor loses a lot of importance
+
+## Model Diagram
+semPaths(model.EST2, what = "std",
+         layout= "tree3",
+         bifactor = "QOL",
+         intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+         edge.label.cex = 1.1,  label.cex= 1.2, edge.label.position = 0.7,
+         mar = c(3,0.8,3,1),
+         weighted= FALSE, edge.color = "black"
+         )
+
+###### 4F-2nd model ######
+
+### Step 2: Model specification ###
+ # There is a suggestive correlation between endogenous variables that may indicate
+ # a second order model, mainly between psycho and physics
+ # Items Q3, Q4 and Q26 have already been reversed
+ # With items Q4 and Q3 correlated
+ # Without item Q5 for comparability
+ # Fixing psycho variance due to convergence problems
+
+model.SPE3 <- '
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+QOL =~ psycho + physical + social + environment
+Q3_F ~~ Q4_F
+psycho ~~ 0*psycho
+'
+### Step 3: Model Estimation ###
+ # With CFA function
+ # With WLSMV/DWLS estimator
+ # All items are ordinal
+
+model.EST3 <- cfa(
+                model.SPE3, data = df0, 
+                ordered = TRUE, # all items are ordinal
+                #std.lv = TRUE, # factor scale
+                estimator = "WLSMV" # estimator
+                )
+ 
+### Step 4: Model Evaluation ###
+ # Be careful with Heywood cases: Std.all > 1 or variance < 0 
+ # Look at SRMR, RMSEA and CFI to assess overall fit
+ # Look at standardized estimates, residual correlations, and MI to assess local fit
+
+summary(model.EST3, fit.measures = TRUE, 
+        standardized = TRUE, rsq = TRUE)
+
+# Modification indices (MI)
+modificationindices(model.EST3, sort. = TRUE,
+                    minimum.value = 3.84,
+                    maximum.number = 20
+                    )
+
+# Residual correlations
+residuals(model.EST3, type = "cor") # look for "cor" > 0.1 
+residuals(model.EST3, type = "standardized")$cov # look for |z| > 2.4
+
+## Reliability coefficient (must be > .7)
+ # alpha = Cronbach's ; omega = composite reliability; omega2 = Bentler's
+ # omega3 = McDonald's ; avevar = AVE (average variance extracted > .5)
+semTools::reliability(model.EST3)
+ # Second order factor reliability
+semTools::reliabilityL2(model.EST3, "QOL")
+
+## Model Diagram
+semPaths(model.EST3, what = "std",
+         style = "lisrel",
+         intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+         edge.label.cex = 0.8,  label.cex= 1.2, 
+         # edge.label.position = 0.75,
+         weighted= FALSE, 
+         mar = c(4,1,3,1),
+         edge.color = "black",
+         node.width = 0.8
+         )
+
+###### 4F model without item Q5 ######
+
+### Step 2: Model Specification ###
+ # Endogenous variables are correlated by default
+ # The items Q3, Q4 and Q26 have already been reversed
+ # With items Q4 and Q3 correlated
+ # Without item Q5 for comparison
+
+model.SPE4 <- '
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+Q4_F ~~ Q3_F
+'
+### Step 3: Model Estimation ###
+ # With the CFA function
+ # With WLSMV/DWLS estimator
+ # Fixing the variance to standardize the factor scale
+ # All items are ordinal
+
+model.EST4 <- cfa(
+    model.SPE4, data = df0, 
+    ordered = TRUE, # all items are ordinal
+    std.lv = TRUE, # factor scale
+    estimator = "WLSMV" # estimator
+)
+
+### Step 4: Model Evaluation ###
+ # Be careful with Heywood cases: Std.all > 1 or variance < 0 
+ # Look at the X2/df, CFI, TLI, SRMR and RMSEA to assess overall fit
+ # Look at standardized estimates, residual correlations, and MI to assess local fit
+
+summary(model.EST4, fit.measures = TRUE, 
+        standardized = TRUE, rsq = TRUE)
+
+# Modification indices (MI)
+modificationindices(model.EST4, sort. = TRUE,
+                    minimum.value = 3.84,
+                    maximum.number = 20
+                    )
+
+# Residuals correlations
+residuals(model.EST4, type = "cor") # look for "cor" > 0.1 
+residuals(model.EST4, type = "standardized")$cov # look for |z| > 2.4
+
+## Reliability coefficient
+ # alpha = Cronbach's ; omega = composite reliability; omega2 = Bentler's
+ # omega3 = McDonald's ; avevar = AVE (average variance extracted)
+semTools::reliability(model.EST4)
+
+## Model Diagram
+semPaths(model.EST4, what = "std",
+         style = "lisrel",  layout = "circle",
+         intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+         edge.label.cex = 1, label.cex= 1,
+         weighted= FALSE,
+         mar = c(1.5,0.8,3,0.3),
+         )
+
+###### Model comparison ######
+
+fit1 <- fitmeasures(object = model.EST1, c("srmr", "rmsea.scaled", "cfi.scaled") 
+)
+
+fit2 <- fitmeasures(object = model.EST2, c("srmr", "rmsea.scaled", "cfi.scaled") 
+)
+
+fit3 <- fitmeasures(object = model.EST3, c("srmr", "rmsea.scaled", "cfi.scaled") 
+)
+
+fit4 <- fitmeasures(object = model.EST4, c("srmr", "rmsea.scaled", "cfi.scaled") 
+)
+
+fit1
+fit2
+fit3
+fit4
+
+## General considerations
+ # The models have similar Level of misspecification, but model.EST1 it's a little worse.  
+ # The bifactor model presents a slightly better fit. 
+ # This finding is consistent with the literature, which points out that, 
+ # due to the greater number of parameters, this structure generally presents better adjustments.
+ # Some authors even argue that it has been used to save some classic scales,
+ # which today are not sustainable due to new estimation and factor selection techniques.
+ # Bifactor models also have the drawback of assuming that specific factors are not correlated,
+ # which generally does not hold up in practice.
+ # Therefore, based on empirical evidence, 
+ # I would opt for the 4 correlated factor model, without item Q5.
+
+###### Post Hoc Power Analysis (POW) ######
+
+## Considering original 4F model (without item Q5)
+ # As we used the lavaan object for the simulations, we preserved the ordinal nature of the items
+## With just 1,000 replications to reduce computational time: 
+ # Eventually, for a final result, we can consider 5,000 or 10,000 replications
+## n = 1047, according to sample size in the database
+## Building CI through simulation and accessing power
+
+Rule.of.thumb <- c(srmr=0.06, rmsea.scaled=0.06, cfi.scaled=0.95)
+
+myModelCI <- simsem::sim(1000, n=nrow(df0), 
+                         model = model.SPE4,
+                         generate = model.EST4,
+                         lavaanfun = "cfa",
+                         ordered = TRUE,
+                         std.lv = TRUE,
+                         estimator = "WLSMV",
+                         seed = 123456
+)
+
+## Summarize the population model used for data generation underlying a result object
+summaryPopulation(myModelCI) # Just checking
+## Provide summary of an object
+summary(myModelCI) # Preliminary
+ # Only two thresholds power < 0.8 (thresholds are generally not parameters of interest)
+## Provide short summary of an object
+summaryShort(myModelCI) # Summary (97.8% of convergence results)  
+## Extract fit indices information and get the cutoffs of fit indices given a priori alpha level
+getCutoff(myModelCI, 0.05, usedFit = c("srmr", "rmsea.scaled","cfi.scaled" ))
+## Find the proportion of fit indices that indicate worse fit than a specified cutoffs.
+getPowerFit(myModelCI, cutoff=Rule.of.thumb, usedFit = c("srmr", "rmsea.scaled","cfi.scaled" ))
+## Plot sampling distributions of fit indices that visualize power of rejecting datasets underlying misspecified models
+plotPowerFit(myModelCI, cutoff = Rule.of.thumb, logistic = FALSE , usedFit = c("srmr", "rmsea.scaled","cfi.scaled" ))
+## Plot sampling distributions of fit indices with fit indices cutoffs
+plotCutoff(myModelCI, 0.05, usedFit = c("srmr", "rmsea.scaled","cfi.scaled" ))
+## Provide summary of parameter estimates and standard error across replications (alpha=.05)
+summaryParam(myModelCI, detail = T, digits = 3) 
+ # Look for Power (>.8), Coverage (0.91-0.98), Rel Bias (<|0.10|) and Rel SE Bias (<|0.10|) 
+ # All parameters of interest outside this range are points of attention
+ # thresholds are generally not parameters of interest
+## Saving estimated parameters for inspection
+myModelparam <- summaryParam(myModelCI, detail = T)
+write_xlsx(myModelparam, "C:/myModelparam.xlsx") # Choose the path on your PC

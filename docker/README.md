@@ -4,7 +4,7 @@ This directory contains the configuration files needed to create a fully reprodu
 
 ### What's Included
 
--   **`Dockerfile`**: Defines the custom Docker image, based on `rocker/verse:4.5.1`, pre-configured with necessary R packages (via `renv`) and LaTeX dependencies for Quarto.
+-   **`Dockerfile`**: Defines the custom Docker image, based on `rocker/verse:4.4.2`, pre-configured with necessary R packages (via `renv`) and LaTeX dependencies for Quarto.
 -   **`docker-compose.yml`**: An orchestration file that simplifies running the Docker container. It handles port mapping, volume mounting for data persistence, and setting necessary environment variables.
 -   **`start.bat` & `start.sh`**: Simple launcher scripts for Windows and Unix-like systems (macOS, Linux), respectively. These scripts automate finding an available IP, starting the environment, and opening RStudio in your browser.
 -   **`stop.bat` & `stop.sh`**: Simple scripts to stop and clean up the running Docker container for Windows and Unix-like systems.
@@ -18,17 +18,17 @@ Before using this environment, ensure you have the following installed on your m
 ### Quick Start
 
 1.  **Open a Terminal/Command Prompt:**
-    -   **Windows:** Open Command Prompt (`cmd`) or PowerShell. Navigate (`cd`) to this `docker` directory (e.g., `C:\path\to\your\article-template\docker`).
-    -   **macOS/Linux:** Open your terminal application. Navigate (`cd`) to this `docker` directory (e.g., `/path/to/your/article-template/docker`).
+    -   **Windows:** Open Command Prompt (`cmd`) or PowerShell. Navigate (`cd`) to this `docker` directory (e.g., `C:\path\to\your\cfa-brm\docker`).
+    -   **macOS/Linux:** Open your terminal application. Navigate (`cd`) to this `docker` directory (e.g., `/path/to/your/cfa-brm/docker`).
 2.  **Launch the Environment:**
     -   **Windows:** Double-click the `start.bat` file, or run `start.bat` in the terminal.
     -   **macOS/Linux:** Run `./start.sh` in the terminal (you might need to make it executable first with `chmod +x start.sh`).
 3.  **Access RStudio:**
     -   The script will automatically find an available IP (starting from 127.0.0.1), start the container, and open your default web browser to `http://127.0.0.1:8787`, for example.
     -   You should see the RStudio interface. **No login is required**; you are automatically logged in as the `rstudio` user.
-    -   The files from your main project directory (`article-template`) will be available in the RStudio file pane under `/home/rstudio/project`.
+    -   The files from your main project directory (`cfa-brm`) will be available in the RStudio file pane under `/home/rstudio/project`.
 4.  **Work on Your Project:**
-    -   Open the `article-template.Rproj` file to activate the R project.
+    -   Open the `cfa-brm.Rproj` file to activate the R project.
     -   Open and edit your Quarto files (`.qmd`).
     -   Run `quarto render` in the RStudio terminal to build your report.
 5.  **Stop the Environment:**

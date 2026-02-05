@@ -65,7 +65,7 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v2 # Use the official R setup action
         with: 
-          r-version: '4.5.1' # Specify the R version to use
+          r-version: '4.4.2' # Specify the R version to use
           use-public-rspm:  true # Use RStudio Package Manager for faster binary package installation
 
       # --- Step 4:  Restore R Packages with Cache ---

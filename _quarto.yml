@@ -1,28 +1,22 @@
 project: # https://quarto.org/docs/projects/quarto-projects.html
-  type: book # Specifies this project is a book format.
+  type: manuscript # Specifies this project is a book format.
   # if change this key, maybe you have a problem with the structure output
   output-dir: docs # Directory where the rendered output files will be placed.
   # not change this key if you want to deploy in GitHub Pages
   post-render: render_cleanup.R # Script to run automatically after rendering is complete.
   # for clean the output directory after render
-resources: # https://quarto.org/docs/projects/quarto-projects.html#project-resources
-  # List of directories containing files needed for rendering (e.g., data, scripts).
-  # These are copied to the output directory.
-  - Data/
-  - Output/
-  - Scripts/
 execute: # https://quarto.org/docs/computations/execution-options.html
   freeze: auto # Automatically manage code execution based on changes.
   warning: false # Prevent R code chunk warnings from appearing in the output.
 book: # https://quarto.org/docs/books/index.html
-  google-analytics: "G-2MWSHLX73Q" # replace with your Google Analytics tracking ID or remove this line
+  #google-analytics: "G-2MWSHLX73Q" # replace with your Google Analytics tracking ID or remove this line
   favicon: cover.jpg # edit or exclude this image/line
-  title: "ARTE" # edit your title
-  subtitle: "Article Reproducibility Template & Environment" # edit your subtitle
-  author: "Pablo Rogers and Ricardo Limongi" # edit your name
-  date: 09/03/2025 # https://quarto.org/docs/reference/dates.html
+  title: "Best practices for your confirmatory factor analysis" # edit your title
+  subtitle: "A JASP and lavaan tutorial" # edit your subtitle
+  author: "Pablo Rogers" # edit your name
+  date: 03/13/2024 # https://quarto.org/docs/reference/dates.html
   date-format: long # Format for displaying the date (e.g., "August 8, 2024").
-  doi: 10.17605/OSF.IO/NJDQ5 # put your DOI
+  doi: https://doi.org/10.3758/s13428-024-02375-7 # put your DOI
   cover-image: cover.jpg # edit ou exclude this image
   downloads: pdf # https://quarto.org/docs/books/book-output.html#reader-tools
   # Adds a button to download the document as a PDF.
@@ -34,9 +28,9 @@ book: # https://quarto.org/docs/books/index.html
   # edit or exclude this footer
     left: <a href="https://www.phdpablo.com">by Pablo Rogers</a> # Content for the left side of the footer.
     right: This article was built with <a href="https://quarto.org/">Quarto</a> # Content for the right side of the footer.
-  site-url: "https://phdpablo.github.io/article-template/" # edit your site URL
+  site-url: "https://phdpablo.github.io/cfa-brm/" # edit your site URL
   # The base URL where the website will be published.
-  repo-url: "https://github.com/phdpablo/article-template/" # edit your repo URL
+  repo-url: "https://github.com/phdpablo/cfa-brm/" # edit your repo URL
   # Link to the source code repository for this project.
   sharing: [twitter, facebook, linkedin] # edit or exclude this sharing
   # Enables sharing buttons for specified social media platforms.
@@ -44,12 +38,7 @@ book: # https://quarto.org/docs/books/index.html
   
   chapters: # https://quarto.org/docs/books/book-structure.html
     - index.qmd # The main landing page of the book/website.
-    - 01-intro.qmd # Introduction chapter.
-    - 02-background.qmd # Background/Theory chapter.
-    - 03-methods.qmd # Methods chapter.
-    - 04-results.qmd # Results chapter.
-    - 05-conclusion.qmd # Conclusion chapter.
-    - references.qmd # References/Bibliography page.
+    #- references.qmd # References/Bibliography page.
 
 bibliography: references.bib # https://quarto.org/docs/authoring/citations.html
 # File containing the bibliographic references in BibTeX format.

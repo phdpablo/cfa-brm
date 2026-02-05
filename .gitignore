@@ -16,7 +16,5 @@ docs/
 *.tex
 
 # Management
-deploy.sh
 adm/
-!adm/README.md
 /.quarto/

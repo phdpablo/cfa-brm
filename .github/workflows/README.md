@@ -12,7 +12,7 @@ Whenever you push changes to the `main` branch of your repository (or trigger it
     -   Installs **Pandoc** (needed by Quarto).
     -   Installs **TeXLive** (for PDF rendering, if needed).
     -   Sets up **Quarto** (version 1.6.42).
-    -   Sets up **R** (version 4.5.1).
+    -   Sets up **R** (version 4.4.2).
     -   Installs essential R packages: `knitr`, `rmarkdown`, `ggplot2`.
 4.  **Builds the Website:** Runs the `quarto render` command to generate the HTML files for your website based on your `_quarto.yml` and `.qmd` files.
 5.  **Deploys the Website:** Automatically pushes the generated website files to a special branch (`gh-pages`) in your repository. GitHub Pages is configured to serve the website from this branch.
