@@ -1617,13 +1617,6 @@
       ],
       "Hash": "cc2d62c76458d425210d1eb1478b30b4"
     },
-    "writexl": {
-      "Package": "writexl",
-      "Version": "1.5.4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "c58dc41b898080efbe58558fe012852c"
-    },
     "xfun": {
       "Package": "xfun",
       "Version": "0.56",

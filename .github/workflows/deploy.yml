@@ -3,7 +3,7 @@
 
 # --- Workflow Metadata ---
 # Give the workflow a descriptive name that appears on GitHub
-name: Deploy ARTE Template
+name: Deploy Best CFA
 
 # --- Trigger Events ---
 # Define when this workflow should run automatically
@@ -61,6 +61,9 @@ jobs:
         with: 
           version: 1.6.42 # Specify the Quarto version to use
 
+      - name: Install GLPK system library
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+      
       # Install and set up a specific version of R
       - name: Setup R
         uses: r-lib/actions/setup-r@v2 # Use the official R setup action
