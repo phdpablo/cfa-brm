@@ -13,7 +13,7 @@ FROM rocker/binder:4.4.2
 # Add labels to the image for identification and documentation purposes.
 # These are useful metadata but do not affect the container's functionality. 
 LABEL maintainer="Pablo Rogers <pablorogers@ufu.br>" \
-      description="MyBinder environment for ARTE"
+      description="MyBinder environment for Best CFA Practices"
 
 # --- Copy Project Files ---
 # Copy the entire project to the container's home directory. 
