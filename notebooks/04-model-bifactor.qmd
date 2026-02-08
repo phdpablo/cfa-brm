@@ -1,0 +1,165 @@
+---
+title: "Bifactor CFA Model"
+description: "Specify, estimate, and evaluate the bifactor model for WHOQOL-BREF"
+format:
+  html:
+    code-fold: show
+    code-summary: "Show code"
+    code-tools: true
+    code-line-numbers: true
+    toc: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introduction
+
+This notebook fits a bifactor model to the WHOQOL-BREF data, with a general
+Quality of Life (QOL) factor and four specific group factors. Item Q5 is
+excluded due to convergence problems.
+
+## Setup
+
+```{r}
+#| label: load-packages-bi
+library(lavaan)
+library(semTools)
+library(semPlot)
+library(psych)
+```
+
+```{r}
+#| label: source-utils-bi
+source("../R/formatting-functions.R")
+source("../R/plot-themes.R")
+```
+
+```{r}
+#| label: load-data-bi
+df0 <- readRDS("../data/whoqol_data.rds")
+```
+
+## Step 2: Model Specification
+
+-   Endogenous variables are not correlated (orthogonal)
+-   Items Q3, Q4 and Q26 have already been reversed
+-   Without considering the correlated items Q4 and Q3 (the G factor affects
+    both items)
+-   Without item Q5 due to convergence problems
+-   The G factor (QOL) must be first in the model specification
+
+```{r}
+#| label: specify-model-bifactor
+spe_4f_bi <- "
+QOL =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P + Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F + Q20_S + Q21_S + Q22_S + Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+"
+```
+
+## Step 3: Model Estimation
+
+-   With the CFA function
+-   With WLSMV/DWLS estimator
+-   Fixing the variance to standardize the factor scale
+-   All items are ordinal
+-   Orthogonal factors (required for bifactor)
+
+```{r}
+#| label: fit-model-bifactor
+est_4f_bi <- cfa(spe_4f_bi,
+  data = df0,
+  orthogonal = TRUE,
+  ordered = TRUE,
+  std.lv = TRUE,
+  estimator = "WLSMV"
+)
+```
+
+```{r}
+#| label: save-fit-bifactor
+saveRDS(est_4f_bi, "../models/est_4f_bi.rds")
+```
+
+## Step 4: Model Evaluation
+
+::: {.callout-tip}
+Be careful with Heywood cases: Std.all > 1 or variance < 0.
+Look at SRMR, RMSEA and CFI to assess overall fit.
+Look at standardized estimates, residual correlations, and MI to assess local fit.
+:::
+
+### Overall Fit and Parameter Estimates
+
+```{r}
+#| label: tbl-summary-bifactor
+#| tbl-cap: "Summary of the bifactor CFA model"
+summary(est_4f_bi, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
+```
+
+### Modification Indices (MI)
+
+```{r}
+#| label: tbl-mi-bifactor
+#| tbl-cap: "Top modification indices for the bifactor model"
+modificationindices(est_4f_bi,
+  sort. = TRUE, minimum.value = 3.84,
+  maximum.number = 20
+)
+```
+
+### Residual Correlations
+
+```{r}
+#| label: residual-cor-bifactor
+residuals(est_4f_bi, type = "cor")
+```
+
+```{r}
+#| label: residual-std-bifactor
+residuals(est_4f_bi, type = "standardized")$cov
+```
+
+### Reliability Coefficients
+
+For the G factor in a bifactor model, omega from `psych::omegaFromSem()` is
+the appropriate reliability measure.
+
+```{r}
+#| label: tbl-reliability-bifactor
+#| tbl-cap: "Reliability coefficients for the bifactor model (G factor)"
+psych::omegaFromSem(fit = est_4f_bi)
+```
+
+### Preliminary Evaluation
+
+-   Overall Fit has improved, but also mediocre (Level 2 of DFI)
+-   The G factor is statistically relevant and explains a lot of the observed
+    variables
+-   The psycho factor loses a lot of importance
+
+## Model Diagram
+
+```{r}
+#| label: fig-diagram-bifactor
+#| fig-cap: "Path diagram of the bifactor CFA model"
+plot_cfa_diagram(est_4f_bi,
+                 layout = "tree3",
+                 bifactor = "QOL",
+                 edge.label.cex = 1.1,
+                 label.cex = 1.2,
+                 mar = c(3, 0.8, 3, 1))
+```
+
+::: {.callout-note collapse="true"}
+## Session Info
+
+```{r}
+#| label: session-info-bifactor
+sessionInfo()
+```
+:::

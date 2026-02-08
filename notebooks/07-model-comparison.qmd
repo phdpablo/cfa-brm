@@ -1,0 +1,108 @@
+---
+title: "Model Comparison"
+description: "Compare fit indices across all CFA models"
+format:
+  html:
+    code-fold: show
+    code-summary: "Show code"
+    code-tools: true
+    code-line-numbers: true
+    toc: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introduction
+
+This notebook compares the fit indices of all CFA models fitted in the previous
+notebooks. The comparison helps determine which model best represents the
+WHOQOL-BREF factor structure.
+
+## Setup
+
+```{r}
+#| label: load-packages-comp
+library(lavaan)
+```
+
+```{r}
+#| label: source-utils-comp
+source("../R/formatting-functions.R")
+```
+
+## Load Fitted Models
+
+```{r}
+#| label: load-models-comp
+est_4fa    <- readRDS("../models/est_4fa.rds")
+est_4f_bi  <- readRDS("../models/est_4f_bi.rds")
+est_4f_2or <- readRDS("../models/est_4f_2or.rds")
+est_4fb    <- readRDS("../models/est_4fb.rds")
+```
+
+## Fit Indices by Model
+
+```{r}
+#| label: fit-indices-4f
+fit_4fa <- fitmeasures(object = est_4fa, c("srmr", "rmsea.scaled", "cfi.scaled"))
+fit_4fa
+```
+
+```{r}
+#| label: fit-indices-bifactor
+fit_4f_bi <- fitmeasures(object = est_4f_bi, c("srmr", "rmsea.scaled", "cfi.scaled"))
+fit_4f_bi
+```
+
+```{r}
+#| label: fit-indices-2or
+fit_4f_2or <- fitmeasures(object = est_4f_2or, c("srmr", "rmsea.scaled", "cfi.scaled"))
+fit_4f_2or
+```
+
+```{r}
+#| label: fit-indices-4fb
+fit_4fb <- fitmeasures(object = est_4fb, c("srmr", "rmsea.scaled", "cfi.scaled"))
+fit_4fb
+```
+
+## Comparison Table
+
+```{r}
+#| label: tbl-model-comparison
+#| tbl-cap: "Fit indices comparison across all CFA models"
+compare_fit(
+  `4-Factor (all items)` = est_4fa,
+  `Bifactor`             = est_4f_bi,
+  `Second-Order`         = est_4f_2or,
+  `4-Factor (no Q5)`     = est_4fb
+)
+```
+
+## General Considerations
+
+The models exhibit a similar level of misspecification, although the original
+4-factor model (with all items) performs slightly worse. The bifactor model
+shows a marginally better fit, which aligns with findings in the literature.
+This is likely due to the greater number of parameters in bifactor structures,
+which generally lead to improved model fit. Some authors even argue that
+bifactor models have been used to salvage traditional scales that are no longer
+sustainable under modern estimation and factor selection techniques.
+
+::: {.callout-important}
+A known limitation of bifactor models is the assumption that specific factors
+are uncorrelated — an assumption that often does not hold in practice.
+Therefore, based on empirical evidence, the four correlated factor model
+excluding item Q5 is recommended.
+:::
+
+::: {.callout-note collapse="true"}
+## Session Info
+
+```{r}
+#| label: session-info-comp
+sessionInfo()
+```
+:::

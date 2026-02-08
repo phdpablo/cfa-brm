@@ -1,0 +1,245 @@
+---
+title: "Population Model and Dynamic Fit Index"
+description: "Define the population model from Lin & Yao (2022) and compute dynamic fit cutoffs"
+format:
+  html:
+    code-fold: show
+    code-summary: "Show code"
+    code-tools: true
+    code-line-numbers: true
+    toc: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introduction
+
+For the calculation of the Dynamic Fit Index (DFI) and the *a priori* power
+analysis, the model resulting from the meta-analysis by @lin2022, referred to
+as *popModel*, is considered. In their study, @lin2022 validated the factor
+structure of the WHOQOL-BREF using a meta-analysis of exploratory factor
+analyses combined with social network analysis.
+
+## Setup
+
+```{r}
+#| label: load-packages-pop
+library(lavaan)
+library(dynamic)
+```
+
+```{r}
+#| label: source-utils-pop
+source("../R/formatting-functions.R")
+```
+
+## Population Model
+
+Given the ordinal nature of the variables, equidistant thresholds are assumed,
+following a linearity assumption, with proportions of 12%, 23%, 31%, and 12%. It
+is unlikely that thresholds will be available in previous studies; however, if
+response frequencies for each category of each item are provided, thresholds can
+be estimated using the inverse normal distribution. For a five‑point Likert
+scale (1 to 5), typical equidistant thresholds would be −1.2, −0.4, 0.4, and
+1.2.
+
+Using the factor loadings obtained by @lin2022 can be questioned, since most
+studies included in their meta-analysis relied on the widely criticized default
+combination of principal components, Kaiser criterion, and varimax rotation, as
+discussed by @rogers2022. Moreover, the evidence comes from exploratory factor
+analysis rather than confirmatory factor analysis.
+
+::: {.callout-important}
+The example model (*popModel*) should be understood as a teaching illustration.
+Ideally, one should look for a robust national survey that has used the WHOQOL
+with CFA for ordinal data (or otherwise), providing more appropriate starting
+values.
+:::
+
+```{r}
+#| label: define-pop-model
+pop_model <- "
+ # define factors and set loadings according to Lin and Yao (2022)
+psycho =~ 0.92*Q5_P + 0.81*Q6_P + 0.94*Q7_P + 0.73*Q11_P + 0.75*Q19_P + 0.63*Q26_P
+physical =~ 0.84*Q3_F + 0.83*Q4_F + 0.63*Q10_F + 0.71*Q15_F + 0.68*Q16_F
+            + 0.89*Q17_F + 0.61*Q18_F
+social =~ 0.94*Q20_S + 0.89*Q21_S + 0.78*Q22_S
+environment =~ 0.37*Q8_A + 0.49*Q9_A + 0.79*Q12_A + 0.81*Q13_A + 0.77*Q14_A
+               + 0.75*Q23_A + 0.64*Q24_A + 0.73*Q25_A
+ # set the maximum acceptable correlation between Q4 and Q3
+Q4_F ~~ 0.3*Q3_F
+ # set factor variances to 1 and correlations to 0.3
+ # according to Lin and Yao (2022), correlations between factors ranged from 0.08 to 0.3
+psycho ~~ 1*psycho + 0.3*physical + 0.3*social + 0.3*environment
+physical ~~ 1*physical + 0.3*social + 0.3*environment
+social ~~ 1*social + 0.3*environment
+environment ~~ 1*environment
+ # set all item residual variances according defined loadings (1-L^2)
+ # except Q3 and Q4 due to the predicted correlation between the two
+Q5_P ~~ 0.15*Q5_P
+Q6_P ~~ 0.34*Q6_P
+Q7_P ~~ 0.12*Q7_P
+Q11_P ~~ 0.47*Q11_P
+Q19_P ~~ 0.44*Q19_P
+Q26_P ~~ 0.6*Q26_P
+Q10_F ~~ 0.6*Q10_F
+Q15_F ~~ 0.5*Q15_F
+Q16_F ~~ 0.54*Q16_F
+Q17_F ~~ 0.21*Q17_F
+Q18_F ~~ 0.63*Q18_F
+Q20_S ~~ 0.12*Q20_S
+Q21_S ~~ 0.21*Q21_S
+Q22_S ~~ 0.39*Q22_S
+Q8_A ~~ 0.86*Q8_A
+Q9_A ~~ 0.76*Q9_A
+Q12_A ~~ 0.38*Q12_A
+Q13_A ~~ 0.34*Q13_A
+Q14_A ~~ 0.41*Q14_A
+Q23_A ~~ 0.44*Q23_A
+Q24_A ~~ 0.59*Q24_A
+Q25_A ~~ 0.47*Q25_A
+ # set thresholds
+Q5_P | -1.2*t1
+Q5_P | -0.4*t2
+Q5_P | 0.4*t3
+Q5_P | 1.2*t4
+Q6_P | -1.2*t1
+Q6_P | -0.4*t2
+Q6_P | 0.4*t3
+Q6_P | 1.2*t4
+Q7_P | -1.2*t1
+Q7_P | -0.4*t2
+Q7_P | 0.4*t3
+Q7_P | 1.2*t4
+Q11_P | -1.2*t1
+Q11_P | -0.4*t2
+Q11_P | 0.4*t3
+Q11_P | 1.2*t4
+Q19_P | -1.2*t1
+Q19_P | -0.4*t2
+Q19_P | 0.4*t3
+Q19_P | 1.2*t4
+Q26_P | -1.2*t1
+Q26_P | -0.4*t2
+Q26_P | 0.4*t3
+Q26_P | 1.2*t4
+Q3_F | -1.2*t1
+Q3_F | -0.4*t2
+Q3_F | 0.4*t3
+Q3_F | 1.2*t4
+Q4_F | -1.2*t1
+Q4_F | -0.4*t2
+Q4_F | 0.4*t3
+Q4_F | 1.2*t4
+Q10_F | -1.2*t1
+Q10_F | -0.4*t2
+Q10_F | 0.4*t3
+Q10_F | 1.2*t4
+Q15_F | -1.2*t1
+Q15_F | -0.4*t2
+Q15_F | 0.4*t3
+Q15_F | 1.2*t4
+Q16_F | -1.2*t1
+Q16_F | -0.4*t2
+Q16_F | 0.4*t3
+Q16_F | 1.2*t4
+Q17_F | -1.2*t1
+Q17_F | -0.4*t2
+Q17_F | 0.4*t3
+Q17_F | 1.2*t4
+Q18_F | -1.2*t1
+Q18_F | -0.4*t2
+Q18_F | 0.4*t3
+Q18_F | 1.2*t4
+Q20_S | -1.2*t1
+Q20_S | -0.4*t2
+Q20_S | 0.4*t3
+Q20_S | 1.2*t4
+Q21_S | -1.2*t1
+Q21_S | -0.4*t2
+Q21_S | 0.4*t3
+Q21_S | 1.2*t4
+Q22_S | -1.2*t1
+Q22_S | -0.4*t2
+Q22_S | 0.4*t3
+Q22_S | 1.2*t4
+Q8_A | -1.2*t1
+Q8_A | -0.4*t2
+Q8_A | 0.4*t3
+Q8_A | 1.2*t4
+Q9_A | -1.2*t1
+Q9_A | -0.4*t2
+Q9_A | 0.4*t3
+Q9_A | 1.2*t4
+Q12_A | -1.2*t1
+Q12_A | -0.4*t2
+Q12_A | 0.4*t3
+Q12_A | 1.2*t4
+Q13_A | -1.2*t1
+Q13_A | -0.4*t2
+Q13_A | 0.4*t3
+Q13_A | 1.2*t4
+Q14_A | -1.2*t1
+Q14_A | -0.4*t2
+Q14_A | 0.4*t3
+Q14_A | 1.2*t4
+Q23_A | -1.2*t1
+Q23_A | -0.4*t2
+Q23_A | 0.4*t3
+Q23_A | 1.2*t4
+Q24_A | -1.2*t1
+Q24_A | -0.4*t2
+Q24_A | 0.4*t3
+Q24_A | 1.2*t4
+Q25_A | -1.2*t1
+Q25_A | -0.4*t2
+Q25_A | 0.4*t3
+Q25_A | 1.2*t4
+"
+```
+
+### Save Population Model
+
+```{r}
+#| label: save-pop-model
+saveRDS(pop_model, "../models/pop_model.rds")
+```
+
+## Dynamic Fit Index
+
+::: {.callout-warning}
+The DFI computation is commented out because it is very time-consuming due to
+simulations. Uncomment and run if you need to recompute the cutoffs.
+:::
+
+```{r}
+#| label: compute-dfi
+#| eval: false
+# Patient! It takes a while due to simulations
+# dynamic::catHB(pop_model, manual = TRUE, n = 1047, plot = TRUE)
+```
+
+These cutoffs were valid for all subsequent analyses, as we are assuming that
+*popModel* is the correct population model.
+
+We could calculate a DFI for each of the estimated models, assuming that the
+model in question would be the correct population model, as is usually the case
+(see the referenced McNeish and Wolf papers). But in this case, we would lose
+comparability, as to date, we do not have DFI for bifactor models, and DFI for
+hierarchical models are in progress.
+
+::: {.callout-note collapse="true"}
+## Session Info
+
+```{r}
+#| label: session-info-pop
+sessionInfo()
+```
+:::
+
+## References {.unnumbered}
+
+::: {#refs}
+:::

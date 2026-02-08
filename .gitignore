@@ -10,10 +10,17 @@ _book/
 _site/
 _temp/
 _freeze/
+_manuscript/
 *_cache/
 index_files/
 docs/
 *.tex
+
+# Data (downloaded at runtime)
+data/*.rds
+
+# Saved model objects (generated at runtime)
+models/*.rds
 
 # Management
 adm/
