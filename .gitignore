@@ -15,6 +15,10 @@ index_files/
 docs/
 *.tex
 
+# Cached data (re-downloaded from Mendeley Data)
+data/WHOQOL_Data.dat
+data/WHOQOL_Labels.txt
+
 # Management
 adm/
 /.quarto/
