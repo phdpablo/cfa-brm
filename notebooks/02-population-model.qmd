@@ -16,11 +16,15 @@ execute:
 
 ## Introduction
 
-For the calculation of the Dynamic Fit Index (DFI) and the *a priori* power
-analysis, the model resulting from the meta-analysis by @lin2022, referred to
-as *popModel*, is considered. In their study, @lin2022 validated the factor
-structure of the WHOQOL-BREF using a meta-analysis of exploratory factor
-analyses combined with social network analysis.
+The Dynamic Fit Index (DFI) provides simulation-based cutoff values tailored to
+a specific model and sample size, as an alternative to generic rules of thumb
+for fit indices.
+
+For the calculation of the DFI and the *a priori* power analysis, the model
+resulting from the meta-analysis by @lin2022, referred to as *popModel*, is
+considered. In their study, @lin2022 validated the factor structure of the
+WHOQOL-BREF using a meta-analysis of exploratory factor analyses combined with
+social network analysis.
 
 ## Setup
 
