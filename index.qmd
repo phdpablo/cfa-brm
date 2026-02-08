@@ -370,7 +370,7 @@ est_4f_2or <- cfa(
   spe_4f_2or,
   data = df0,
   ordered = TRUE,    # all items are ordinal
-  # std.lv = TRUE,   # not used — see model specification notes
+  # std.lv = TRUE,   # not used — psycho variance fixed to 0 in model spec
   estimator = "WLSMV"
 )
 ```

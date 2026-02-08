@@ -23,10 +23,17 @@ load_whoqol_data <- function(cache_dir = here::here("data")) {
 
     message("Downloading WHOQOL data from Mendeley Data...")
     dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
-    utils::download.file(url_data, cache_file, mode = "wb", quiet = TRUE)
+
+    tryCatch(
+      utils::download.file(url_data, cache_file, mode = "wb"),
+      error = function(e) stop("Failed to download data: ", e$message, call. = FALSE)
+    )
 
     labels_file <- file.path(cache_dir, "WHOQOL_Labels.txt")
-    utils::download.file(url_labels, labels_file, mode = "wb", quiet = TRUE)
+    tryCatch(
+      utils::download.file(url_labels, labels_file, mode = "wb"),
+      error = function(e) stop("Failed to download labels: ", e$message, call. = FALSE)
+    )
     message("Data cached in: ", cache_dir)
   }
 

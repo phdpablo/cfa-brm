@@ -21,7 +21,7 @@ compare_fit <- function(...,
   fits <- list(...)
   rows <- lapply(names(fits), function(nm) {
     vals <- extract_fit(fits[[nm]], indices)
-    data.frame(Model = nm, t(as.data.frame(vals)),
+    data.frame(Model = nm, as.data.frame(as.list(vals)),
                row.names = NULL, check.names = FALSE)
   })
   do.call(rbind, rows)
