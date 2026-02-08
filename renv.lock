@@ -659,16 +659,6 @@
       ],
       "Hash": "588d091c35389f1f4a9d533c8d709b35"
     },
-    "here": {
-      "Package": "here",
-      "Version": "1.0.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "rprojroot"
-      ],
-      "Hash": "24b224366f9c2e7534571571d64139e5"
-    },
     "highr": {
       "Package": "highr",
       "Version": "0.11",
@@ -1357,16 +1347,6 @@
         "parallel"
       ],
       "Hash": "80ed74edc36a88b5957308c54877a105"
-    },
-    "rprojroot": {
-      "Package": "rprojroot",
-      "Version": "2.0.4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R"
-      ],
-      "Hash": "4c8415e0ec1e29f3f4f6fc108bef0144"
     },
     "rstudioapi": {
       "Package": "rstudioapi",

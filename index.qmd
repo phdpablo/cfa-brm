@@ -15,7 +15,7 @@ keywords:
   - JASP
   - lavaan
 abstract: |
-  Confirmatory factor analysis (CFA) is a fundamental method for evaluating the internal structural validity of measurement instruments. In most CFA applications, the measurement model serves as a means to an end rather than an end in itself. To select the appropriate model, prior validity evidence is crucial, and items are typically assessed on an ordinal scale, which has been used in the applied social sciences. However, textbooks on structural equation modeling (SEM) often overlook this specific case, focusing on applications estimable using maximum likelihood (ML) instead. Unfortunately, several popular commercial SEM software packages lack suitable solutions for handling this 'typical CFA', leading to confusion and suboptimal decision-making when conducting CFA in this context. This article conceptually contributes to this ongoing discussion by presenting a set of guidelines for conducting a typical CFA, drawing from recent empirical research. We provide a practical contribution by introducing and developing a tutorial example within the JASP and lavaan software platforms. Supplementary materials such as videos, files, and scripts are freely available.
+  Confirmatory factor analysis (CFA) is a fundamental method for evaluating the internal structural validity of measurement instruments. In most CFA applications, the measurement model serves as a means to an end rather than an end in itself. To select the appropriate model, prior validity evidence is crucial, and items are typically assessed on an ordinal scale, which has been used in the applied social sciences. However, textbooks on structural equation modeling (SEM) often overlook this specific case, focusing on applications estimable using maximum likelihood (ML) instead. Unfortunately, several popular commercial SEM software packages lack suitable solutions for handling this ‘typical CFA’, leading to confusion and suboptimal decision-making when conducting CFA in this context. This article conceptually contributes to this ongoing discussion by presenting a set of guidelines for conducting a typical CFA, drawing from recent empirical research. We provide a practical contribution by introducing and developing a tutorial example within the JASP and lavaan software platforms. Supplementary materials such as videos, files, and scripts are freely available.
 #plain-language-summary: |
 # key-points:
 date: 03/13/2024
@@ -30,11 +30,9 @@ editor:
 
 ## Introduction
 
-### Loading packages
+### Reading the lavaan and other packages
 
 ```{r}
-#| label: setup
-#| message: false
 library(lavaan)
 library(semTools)
 library(semPlot)
@@ -44,19 +42,10 @@ library(MASS)
 library(dynamic)
 ```
 
-### Loading helper functions
-
-```{r}
-#| label: source-helpers
-source(here::here("R", "utils-data.R"))
-source(here::here("R", "utils-models.R"))
-source(here::here("R", "utils-fit.R"))
-```
-
 ### Environment preparation
 
 ```{r}
-#| label: env-setup
+options(max.print = 1000000) # Increasing the number of lines in the output
 set.seed(123456)
 ```
 
@@ -64,17 +53,26 @@ set.seed(123456)
 
 See reference article [@rogers2022] and database [@rogers2021]
 
-### Reading the database
+### Reading the database from the internet
 
 ```{r}
-#| label: load-data
-df0 <- load_whoqol_data()
+# Defining the database URL
+url_data <- "https://data.mendeley.com/datasets/rdky78bk8r/2/files/b58a7054-4978-4239-81db-00f9efd86e44/WHOQOL_Data.dat"
+# Reading data without variable names
+df0 <- read.table(url_data)
+# Defining the URL of variable names
+url_labels <- "https://data.mendeley.com/datasets/rdky78bk8r/2/files/ae2a5c01-2fc2-43e5-b31c-8db8cc5bff8a/WHOQOL_Labels.txt"
+# Reading variable names in the first column
+column_labels <- read.table(url_labels)
+# Extracting the first column
+column_labels <- column_labels$V1
+# Assigning variable names
+names(df0) <- column_labels
 ```
 
 ### Viewing the database
 
 ```{r}
-#| label: view-data
 head(df0)
 names(df0)
 str(df0)
@@ -109,8 +107,144 @@ used the WHOQOL with CFA for ordinal data (or otherwise), providing more
 appropriate starting values.
 
 ```{r}
-#| label: pop-model
-pop_model <- specify_pop_model()
+pop_model <- "
+ # define factors and set loadings according to Lin and Yao (2022)
+psycho =~ 0.92*Q5_P + 0.81*Q6_P + 0.94*Q7_P + 0.73*Q11_P + 0.75*Q19_P + 0.63*Q26_P
+physical =~ 0.84*Q3_F + 0.83*Q4_F + 0.63*Q10_F + 0.71*Q15_F + 0.68*Q16_F
+            + 0.89*Q17_F + 0.61*Q18_F
+social =~ 0.94*Q20_S + 0.89*Q21_S + 0.78*Q22_S
+environment =~ 0.37*Q8_A + 0.49*Q9_A + 0.79*Q12_A + 0.81*Q13_A + 0.77*Q14_A
+               + 0.75*Q23_A + 0.64*Q24_A + 0.73*Q25_A
+ # set the maximum acceptable correlation between Q4 and Q3
+Q4_F ~~ 0.3*Q3_F
+ # set factor variances to 1 and correlations to 0.3
+ # according to Lin and Yao (2022), correlations between factors ranged from 0.08 to 0.3
+psycho ~~ 1*psycho + 0.3*physical + 0.3*social + 0.3*environment
+physical ~~ 1*physical + 0.3*social + 0.3*environment
+social ~~ 1*social + 0.3*environment
+environment ~~ 1*environment
+ # set all item residual variances according defined loadings (1-L^2)
+ # except Q3 and Q4 due to the predicted correlation between the two
+Q5_P ~~ 0.15*Q5_P
+Q6_P ~~ 0.34*Q6_P
+Q7_P ~~ 0.12*Q7_P
+Q11_P ~~ 0.47*Q11_P
+Q19_P ~~ 0.44*Q19_P
+Q26_P ~~ 0.6*Q26_P
+Q10_F ~~ 0.6*Q10_F
+Q15_F ~~ 0.5*Q15_F
+Q16_F ~~ 0.54*Q16_F
+Q17_F ~~ 0.21*Q17_F
+Q18_F ~~ 0.63*Q18_F
+Q20_S ~~ 0.12*Q20_S
+Q21_S ~~ 0.21*Q21_S
+Q22_S ~~ 0.39*Q22_S
+Q8_A ~~ 0.86*Q8_A
+Q9_A ~~ 0.76*Q9_A
+Q12_A ~~ 0.38*Q12_A
+Q13_A ~~ 0.34*Q13_A
+Q14_A ~~ 0.41*Q14_A
+Q23_A ~~ 0.44*Q23_A
+Q24_A ~~ 0.59*Q24_A
+Q25_A ~~ 0.47*Q25_A
+ # set thresholds
+Q5_P | -1.2*t1
+Q5_P | -0.4*t2
+Q5_P | 0.4*t3
+Q5_P | 1.2*t4
+Q6_P | -1.2*t1
+Q6_P | -0.4*t2
+Q6_P | 0.4*t3
+Q6_P | 1.2*t4
+Q7_P | -1.2*t1
+Q7_P | -0.4*t2
+Q7_P | 0.4*t3
+Q7_P | 1.2*t4
+Q11_P | -1.2*t1
+Q11_P | -0.4*t2
+Q11_P | 0.4*t3
+Q11_P | 1.2*t4
+Q19_P | -1.2*t1
+Q19_P | -0.4*t2
+Q19_P | 0.4*t3
+Q19_P | 1.2*t4
+Q26_P | -1.2*t1
+Q26_P | -0.4*t2
+Q26_P | 0.4*t3
+Q26_P | 1.2*t4
+Q3_F | -1.2*t1
+Q3_F | -0.4*t2
+Q3_F | 0.4*t3
+Q3_F | 1.2*t4
+Q4_F | -1.2*t1
+Q4_F | -0.4*t2
+Q4_F | 0.4*t3
+Q4_F | 1.2*t4
+Q10_F | -1.2*t1
+Q10_F | -0.4*t2
+Q10_F | 0.4*t3
+Q10_F | 1.2*t4
+Q15_F | -1.2*t1
+Q15_F | -0.4*t2
+Q15_F | 0.4*t3
+Q15_F | 1.2*t4
+Q16_F | -1.2*t1
+Q16_F | -0.4*t2
+Q16_F | 0.4*t3
+Q16_F | 1.2*t4
+Q17_F | -1.2*t1
+Q17_F | -0.4*t2
+Q17_F | 0.4*t3
+Q17_F | 1.2*t4
+Q18_F | -1.2*t1
+Q18_F | -0.4*t2
+Q18_F | 0.4*t3
+Q18_F | 1.2*t4
+Q20_S | -1.2*t1
+Q20_S | -0.4*t2
+Q20_S | 0.4*t3
+Q20_S | 1.2*t4
+Q21_S | -1.2*t1
+Q21_S | -0.4*t2
+Q21_S | 0.4*t3
+Q21_S | 1.2*t4
+Q22_S | -1.2*t1
+Q22_S | -0.4*t2
+Q22_S | 0.4*t3
+Q22_S | 1.2*t4
+Q8_A | -1.2*t1
+Q8_A | -0.4*t2
+Q8_A | 0.4*t3
+Q8_A | 1.2*t4
+Q9_A | -1.2*t1
+Q9_A | -0.4*t2
+Q9_A | 0.4*t3
+Q9_A | 1.2*t4
+Q12_A | -1.2*t1
+Q12_A | -0.4*t2
+Q12_A | 0.4*t3
+Q12_A | 1.2*t4
+Q13_A | -1.2*t1
+Q13_A | -0.4*t2
+Q13_A | 0.4*t3
+Q13_A | 1.2*t4
+Q14_A | -1.2*t1
+Q14_A | -0.4*t2
+Q14_A | 0.4*t3
+Q14_A | 1.2*t4
+Q23_A | -1.2*t1
+Q23_A | -0.4*t2
+Q23_A | 0.4*t3
+Q23_A | 1.2*t4
+Q24_A | -1.2*t1
+Q24_A | -0.4*t2
+Q24_A | 0.4*t3
+Q24_A | 1.2*t4
+Q25_A | -1.2*t1
+Q25_A | -0.4*t2
+Q25_A | 0.4*t3
+Q25_A | 1.2*t4
+"
 ```
 
 ### Dynamic Fit Index
@@ -118,8 +252,7 @@ pop_model <- specify_pop_model()
 Patient! It takes a while due to simulations
 
 ```{r}
-#| label: dfi
-# dynamic::catHB(pop_model, manual = TRUE, n = 1047, plot = TRUE)
+# dynamic::catHB(pop_model, manual = T, n = 1047, plot = T)
 ```
 
 These cutoff were valid for all subsequent analyses, as we are assuming that
@@ -140,8 +273,13 @@ hierarchical models are in progress.
 -   With items Q4 and Q3 correlated
 
 ```{r}
-#| label: spe-4fa
-spe_4fa <- specify_4f_model()
+spe_4fa <- "
+psycho =~ Q5_P + Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+Q4_F ~~ Q3_F
+"
 ```
 
 ### Step 3: Model Estimation
@@ -152,13 +290,12 @@ spe_4fa <- specify_4f_model()
 -   All items are ordinal
 
 ```{r}
-#| label: est-4fa
 est_4fa <- cfa(
   spe_4fa,
   data = df0,
-  ordered = TRUE,  # all ordinal items
-  std.lv = TRUE,   # factor scale standardization
-  estimator = "WLSMV"
+  ordered = TRUE, # all ordinal items
+  std.lv = TRUE, # factors scale
+  estimator = "WLSMV" # estimator
 )
 ```
 
@@ -170,7 +307,6 @@ est_4fa <- cfa(
     local fit
 
 ```{r}
-#| label: eval-4fa
 summary(est_4fa,
   fit.measures = TRUE,
   standardized = TRUE, rsq = TRUE
@@ -180,7 +316,6 @@ summary(est_4fa,
 ### Modification indices (MI)
 
 ```{r}
-#| label: mi-4fa
 modificationindices(est_4fa,
   sort. = TRUE,
   minimum.value = 3.84,
@@ -191,7 +326,6 @@ modificationindices(est_4fa,
 ### Residual correlations
 
 ```{r}
-#| label: resid-4fa
 residuals(est_4fa, type = "cor") # look for "cor" > 0.1
 residuals(est_4fa, type = "standardized")$cov # look for |z| > 2.4
 ```
@@ -202,7 +336,6 @@ residuals(est_4fa, type = "standardized")$cov # look for |z| > 2.4
 -   omega3 = McDonald's ; avevar = AVE (average variance extracted > 0.5)
 
 ```{r}
-#| label: rel-4fa
 semTools::reliability(est_4fa)
 ```
 
@@ -219,8 +352,6 @@ semTools::reliability(est_4fa)
 ### Model Diagram 1
 
 ```{r}
-#| label: fig-4fa-lisrel
-#| fig-cap: "4F model — LISREL-style path diagram"
 semPlot::semPaths(
   object = est_4fa,
   what = "std",
@@ -229,22 +360,20 @@ semPlot::semPaths(
   edge.label.cex = 0.6, label.cex = 1.3,
   weighted = FALSE,
   edge.color = "black",
-  node.width = 0.6
+  node.width = 0.6,
 )
 ```
 
 ### Model Diagram 2
 
 ```{r}
-#| label: fig-4fa-circle
-#| fig-cap: "4F model — circular layout"
 semPaths(est_4fa,
   what = "std",
   style = "lisrel", layout = "circle",
   intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
   edge.label.cex = 1, label.cex = 1,
   weighted = FALSE,
-  mar = c(1.5, 0.8, 3, 0.3)
+  mar = c(1.5, 0.8, 3, 0.3),
 )
 ```
 
@@ -260,8 +389,13 @@ semPaths(est_4fa,
 -   The G factor (QOL) must be first in the model specification
 
 ```{r}
-#| label: spe-bifactor
-spe_4f_bi <- specify_bifactor_model()
+spe_4f_bi <- "
+QOL =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P + Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F + Q20_S + Q21_S + Q22_S + Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+"
 ```
 
 ### Step 3: Model Estimation
@@ -272,13 +406,12 @@ spe_4f_bi <- specify_bifactor_model()
 -   All items are ordinal
 
 ```{r}
-#| label: est-bifactor
 est_4f_bi <- cfa(spe_4f_bi,
   data = df0,
   orthogonal = TRUE, # uncorrelated factors
-  ordered = TRUE,    # all ordinal items
-  std.lv = TRUE,     # factor scale standardization
-  estimator = "WLSMV"
+  ordered = TRUE, # all ordinal items
+  std.lv = TRUE, # factors scale
+  estimator = "WLSMV" # estimator
 )
 ```
 
@@ -290,14 +423,12 @@ est_4f_bi <- cfa(spe_4f_bi,
     local fit
 
 ```{r}
-#| label: eval-bifactor
 summary(est_4f_bi, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```
 
 ### Modification indices (MI)
 
 ```{r}
-#| label: mi-bifactor
 modificationindices(est_4f_bi,
   sort. = TRUE, minimum.value = 3.84,
   maximum.number = 20
@@ -307,7 +438,6 @@ modificationindices(est_4f_bi,
 ### Residual correlations
 
 ```{r}
-#| label: resid-bifactor
 residuals(est_4f_bi, type = "cor") # look for "cor" > 0.1
 residuals(est_4f_bi, type = "standardized")$cov # look for |z| > 2.4
 ```
@@ -317,7 +447,6 @@ residuals(est_4f_bi, type = "standardized")$cov # look for |z| > 2.4
 -   For the G factor it must be:
 
 ```{r}
-#| label: rel-bifactor
 psych::omegaFromSem(fit = est_4f_bi)
 ```
 
@@ -331,13 +460,10 @@ psych::omegaFromSem(fit = est_4f_bi)
 ### Model Diagram
 
 ```{r}
-#| label: fig-bifactor
-#| fig-cap: "Bifactor model diagram"
 semPaths(est_4f_bi,
   what = "std", layout = "tree3", bifactor = "QOL",
-  intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
-  edge.label.cex = 1.1, label.cex = 1.2, edge.label.position = 0.7,
-  mar = c(3, 0.8, 3, 1), weighted = FALSE,
+  intercepts = FALSE, thresholds = FALSE, residuals = FALSE, edge.label.cex = 1.1, label.cex =
+    1.2, edge.label.position = 0.7, mar = c(3, 0.8, 3, 1), weighted = FALSE,
   edge.color = "black"
 )
 ```
@@ -354,8 +480,15 @@ semPaths(est_4f_bi,
 -   Fixing psycho variance due to convergence problems
 
 ```{r}
-#| label: spe-2nd
-spe_4f_2or <- specify_second_order_model()
+spe_4f_2or <- "
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+QOL =~ psycho + physical + social + environment
+Q3_F ~~ Q4_F
+psycho ~~ 0*psycho
+"
 ```
 
 ### Step 3: Model Estimation
@@ -365,13 +498,12 @@ spe_4f_2or <- specify_second_order_model()
 -   All items are ordinal
 
 ```{r}
-#| label: est-2nd
 est_4f_2or <- cfa(
   spe_4f_2or,
   data = df0,
-  ordered = TRUE,    # all items are ordinal
-  # std.lv = TRUE,   # not used — psycho variance fixed to 0 in model spec
-  estimator = "WLSMV"
+  ordered = TRUE, # all items are ordinal
+  # std.lv = TRUE, # factor scale
+  estimator = "WLSMV" # estimator
 )
 ```
 
@@ -383,14 +515,12 @@ est_4f_2or <- cfa(
     local fit
 
 ```{r}
-#| label: eval-2nd
 summary(est_4f_2or, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```
 
 ### Modification indices (MI)
 
 ```{r}
-#| label: mi-2nd
 modificationindices(est_4f_2or,
   sort. = TRUE, minimum.value = 3.84,
   maximum.number = 20
@@ -400,7 +530,6 @@ modificationindices(est_4f_2or,
 ### Residual correlations
 
 ```{r}
-#| label: resid-2nd
 residuals(est_4f_2or, type = "cor") # look for "cor" > 0.1
 residuals(est_4f_2or, type = "standardized")$cov # look for |z| > 2.4
 ```
@@ -411,7 +540,6 @@ residuals(est_4f_2or, type = "standardized")$cov # look for |z| > 2.4
 -   omega3 = McDonald's ; avevar = AVE (average variance extracted \> .5)
 
 ```{r}
-#| label: rel-2nd
 semTools::reliability(est_4f_2or) # Second order factor reliability
 semTools::reliabilityL2(est_4f_2or, "QOL")
 ```
@@ -419,8 +547,6 @@ semTools::reliabilityL2(est_4f_2or, "QOL")
 ### Model Diagram
 
 ```{r}
-#| label: fig-2nd
-#| fig-cap: "Second-order model diagram"
 semPaths(est_4f_2or,
   what = "std",
   style = "lisrel",
@@ -443,8 +569,13 @@ semPaths(est_4f_2or,
 -   Without item Q5 for comparison
 
 ```{r}
-#| label: spe-4fb
-spe_4fb <- specify_4f_no_q5_model()
+spe_4fb <- "
+psycho =~ Q6_P + Q7_P + Q11_P + Q19_P + Q26_P
+physical =~ Q3_F + Q4_F + Q10_F + Q15_F + Q16_F + Q17_F + Q18_F
+social =~ Q20_S + Q21_S + Q22_S
+environment =~ Q8_A + Q9_A + Q12_A + Q13_A + Q14_A + Q23_A + Q24_A + Q25_A
+Q4_F ~~ Q3_F
+"
 ```
 
 ### Step 3: Model Estimation
@@ -455,13 +586,12 @@ spe_4fb <- specify_4f_no_q5_model()
 -   All items are ordinal
 
 ```{r}
-#| label: est-4fb
 est_4fb <- cfa(
   spe_4fb,
   data = df0,
-  ordered = TRUE,  # all items are ordinal
-  std.lv = TRUE,   # factor scale standardization
-  estimator = "WLSMV"
+  ordered = TRUE, # all items are ordinal
+  std.lv = TRUE, # factor scale
+  estimator = "WLSMV" # estimator
 )
 ```
 
@@ -473,14 +603,12 @@ est_4fb <- cfa(
     local fit
 
 ```{r}
-#| label: eval-4fb
 summary(est_4fb, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```
 
 ### Modification indices (MI)
 
 ```{r}
-#| label: mi-4fb
 modificationindices(est_4fb,
   sort. = TRUE, minimum.value = 3.84,
   maximum.number = 20
@@ -490,7 +618,6 @@ modificationindices(est_4fb,
 ### Residuals correlations
 
 ```{r}
-#| label: resid-4fb
 residuals(est_4fb, type = "cor") # look for "cor" > 0.1
 residuals(est_4fb, type = "standardized")$cov # look for |z| > 2.4
 ```
@@ -501,37 +628,37 @@ residuals(est_4fb, type = "standardized")$cov # look for |z| > 2.4
 -   omega3 = McDonald's ; avevar = AVE (average variance extracted)
 
 ```{r}
-#| label: rel-4fb
 semTools::reliability(est_4fb)
 ```
 
 ### Model Diagram
 
 ```{r}
-#| label: fig-4fb
-#| fig-cap: "4F model without Q5 — circular layout"
 semPaths(est_4fb,
   what = "std",
   style = "lisrel", layout = "circle",
   intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
   edge.label.cex = 1, label.cex = 1,
   weighted = FALSE,
-  mar = c(1.5, 0.8, 3, 0.3)
+  mar = c(1.5, 0.8, 3, 0.3),
 )
 ```
 
 ## Model comparison
 
 ```{r}
-#| label: tbl-fit-comparison
-#| tbl-cap: "Fit indices comparison across models"
-fit_comparison <- compare_fit(
-  `4F (with Q5)`    = est_4fa,
-  `4F Bifactor`     = est_4f_bi,
-  `4F Second-order` = est_4f_2or,
-  `4F (no Q5)`      = est_4fb
-)
-knitr::kable(fit_comparison, digits = 4)
+fit_4fa <- fitmeasures(object = est_4fa, c("srmr", "rmsea.scaled", "cfi.scaled"))
+
+fit_4f_bi <- fitmeasures(object = est_4f_bi, c("srmr", "rmsea.scaled", "cfi.scaled"))
+
+fit_4f_2or <- fitmeasures(object = est_4f_2or, c("srmr", "rmsea.scaled", "cfi.scaled"))
+
+fit_4fb <- fitmeasures(object = est_4fb, c("srmr", "rmsea.scaled", "cfi.scaled"))
+
+fit_4fa
+fit_4f_bi
+fit_4f_2or
+fit_4fb
 ```
 
 ## General considerations
@@ -558,12 +685,10 @@ dataset. Confidence intervals were constructed through simulation, which also
 allowed us to assess statistical power.
 
 ```{r}
-#| label: power-cutoffs
 rule_of_thumb <- c(srmr = 0.06, rmsea.scaled = 0.06, cfi.scaled = 0.95)
 ```
 
 ```{r}
-#| label: power-sim
 my_modelci <- simsem::sim(100,
   n = nrow(df0),
   model = spe_4fb,
@@ -580,14 +705,12 @@ my_modelci <- simsem::sim(100,
     object
 
 ```{r}
-#| label: power-pop
 summaryPopulation(my_modelci) # Just checking
 ```
 
 -   Provide summary of an object
 
 ```{r}
-#| label: power-summary
 summary(my_modelci) # Preliminary
 ```
 
@@ -597,7 +720,6 @@ interest)
 -   Provide short summary of an object
 
 ```{r}
-#| label: power-short
 summaryShort(my_modelci) # Summary (97.8% of convergence results)
 ```
 
@@ -605,7 +727,6 @@ summaryShort(my_modelci) # Summary (97.8% of convergence results)
     priori alpha level
 
 ```{r}
-#| label: power-cutoff-extract
 getCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ```
 
@@ -613,40 +734,26 @@ getCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
     cutoffs.
 
 ```{r}
-#| label: power-fit
-getPowerFit(my_modelci,
-  cutoff = rule_of_thumb,
-  usedFit = c("srmr", "rmsea.scaled", "cfi.scaled")
-)
+getPowerFit(my_modelci, cutoff = rule_of_thumb, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ```
 
 -   Plot sampling distributions of fit indices that visualize power of rejecting
     datasets underlying misspecified models
 
 ```{r}
-#| label: fig-power-fit
-#| fig-cap: "Sampling distributions of fit indices — power analysis"
-plotPowerFit(my_modelci,
-  cutoff = rule_of_thumb, logistic = FALSE,
-  usedFit = c("srmr", "rmsea.scaled", "cfi.scaled")
-)
+plotPowerFit(my_modelci, cutoff = rule_of_thumb, logistic = FALSE, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ```
 
 -   Plot sampling distributions of fit indices with fit indices cutoffs
 
 ```{r}
-#| label: fig-power-cutoff
-#| fig-cap: "Sampling distributions of fit indices with cutoffs"
-plotCutoff(my_modelci, 0.05,
-  usedFit = c("srmr", "rmsea.scaled", "cfi.scaled")
-)
+plotCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ```
 
 -   Provide summary of parameter estimates and standard error across
     replications (alpha=.05)
 
 ```{r}
-#| label: power-params
 summaryParam(my_modelci, detail = TRUE, digits = 3)
 ```
 
@@ -654,13 +761,6 @@ summaryParam(my_modelci, detail = TRUE, digits = 3)
     SE Bias (<|0.10|)
 -   All parameters of interest outside this range are points of attention
 -   thresholds are generally not parameters of interest
-
-## Session Information {.unnumbered}
-
-```{r}
-#| label: session-info
-sessionInfo()
-```
 
 ## References {.unnumbered}
 

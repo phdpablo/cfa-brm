@@ -5,8 +5,7 @@ project: # https://quarto.org/docs/manuscripts/
 
 execute: # https://quarto.org/docs/computations/execution-options.html
   freeze: auto # Automatically manage code execution based on changes.
-  warning: true # Show warnings so analysts can evaluate convergence issues.
-  message: false # Suppress package loading messages for cleaner output.
+  warning: false # Prevent R code chunk warnings from appearing in the output.
   #cache: true # Enable caching of code chunks to speed up rendering on subsequent runs.
 
 manuscript: # https://quarto.org/docs/manuscripts/authoring/rstudio.html
