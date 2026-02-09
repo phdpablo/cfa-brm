@@ -77,6 +77,7 @@ est_4fa <- cfa(
 
 ```{r}
 #| label: save-fit-4f
+#| cache: false
 saveRDS(est_4fa, "../models/est_4fa.rds")
 ```
 
@@ -91,7 +92,7 @@ Look at standardized estimates, residual correlations, and MI to assess local fi
 ### Overall Fit and Parameter Estimates
 
 ```{r}
-#| label: tbl-summary-4f
+#| label: summary-4f
 #| tbl-cap: "Summary of the 4-factor CFA model"
 summary(est_4fa,
   fit.measures = TRUE,
@@ -104,11 +105,11 @@ summary(est_4fa,
 ```{r}
 #| label: tbl-mi-4f
 #| tbl-cap: "Top modification indices for the 4-factor model"
-modificationindices(est_4fa,
+knitr::kable(modificationindices(est_4fa,
   sort. = TRUE,
   minimum.value = 3.84,
   maximum.number = 20
-)
+), digits = 3)
 ```
 
 ### Residual Correlations
@@ -135,7 +136,7 @@ Reliability coefficients must be > .7 for adequate internal consistency.
 ```{r}
 #| label: tbl-reliability-4f
 #| tbl-cap: "Reliability coefficients for the 4-factor model"
-semTools::reliability(est_4fa)
+knitr::kable(format_reliability(est_4fa))
 ```
 
 ### Preliminary Evaluation

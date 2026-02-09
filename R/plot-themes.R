@@ -28,30 +28,29 @@ plot_cfa_diagram <- function(fit,
                              node.width = 0.7,
                              mar = c(3, 1, 3, 1),
                              ...) {
-  args <- list(
-    object = fit,
-    what = "std",
-    style = "lisrel",
-    layout = layout,
-    intercepts = FALSE,
-    thresholds = FALSE,
-    residuals = FALSE,
-    edge.label.cex = edge.label.cex,
-    label.cex = label.cex,
-    weighted = FALSE,
-    edge.color = "black",
-    node.width = node.width,
-    mar = mar
-  )
-
+  sem_model <- semPlot::semPlotModel(fit)
+  
   if (!is.null(bifactor)) {
-    args$bifactor <- bifactor
-    args$edge.label.position <- 0.7
+    semPlot::semPaths(
+      sem_model,
+      what = "std", style = "lisrel", layout = layout,
+      intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+      edge.label.cex = edge.label.cex, label.cex = label.cex,
+      weighted = FALSE, edge.color = "black",
+      node.width = node.width, mar = mar,
+      bifactor = bifactor, edge.label.position = 0.7,
+      ...
+    )
+  } else {
+    semPlot::semPaths(
+      sem_model,
+      what = "std", style = "lisrel", layout = layout,
+      intercepts = FALSE, thresholds = FALSE, residuals = FALSE,
+      edge.label.cex = edge.label.cex, label.cex = label.cex,
+      weighted = FALSE, edge.color = "black",
+      node.width = node.width, mar = mar,
+      ...
+    )
   }
-
-  extra <- list(...)
-  args <- c(args, extra)
-
-  do.call(semPlot::semPaths, args)
   invisible(NULL)
 }

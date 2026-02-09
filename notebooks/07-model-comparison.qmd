@@ -73,12 +73,12 @@ fit_4fb
 ```{r}
 #| label: tbl-model-comparison
 #| tbl-cap: "Fit indices comparison across all CFA models"
-compare_fit(
+knitr::kable(compare_fit(
   `4-Factor (all items)` = est_4fa,
   `Bifactor`             = est_4f_bi,
   `Second-Order`         = est_4f_2or,
   `4-Factor (no Q5)`     = est_4fb
-)
+))
 ```
 
 ## General Considerations

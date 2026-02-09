@@ -80,6 +80,7 @@ est_4f_2or <- cfa(
 
 ```{r}
 #| label: save-fit-2or
+#| cache: false
 saveRDS(est_4f_2or, "../models/est_4f_2or.rds")
 ```
 
@@ -94,7 +95,7 @@ Look at standardized estimates, residual correlations, and MI to assess local fi
 ### Overall Fit and Parameter Estimates
 
 ```{r}
-#| label: tbl-summary-2or
+#| label: summary-2or
 #| tbl-cap: "Summary of the second-order CFA model"
 summary(est_4f_2or, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```
@@ -104,10 +105,10 @@ summary(est_4f_2or, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```{r}
 #| label: tbl-mi-2or
 #| tbl-cap: "Top modification indices for the second-order model"
-modificationindices(est_4f_2or,
+knitr::kable(modificationindices(est_4f_2or,
   sort. = TRUE, minimum.value = 3.84,
   maximum.number = 20
-)
+), digits = 3)
 ```
 
 ### Residual Correlations
@@ -130,13 +131,13 @@ residuals(est_4f_2or, type = "standardized")$cov
 ```{r}
 #| label: tbl-reliability-2or
 #| tbl-cap: "Reliability coefficients for the second-order model"
-semTools::reliability(est_4f_2or)
+knitr::kable(format_reliability(est_4f_2or))
 ```
 
 ```{r}
 #| label: tbl-reliability-2or-l2
 #| tbl-cap: "Second-order factor reliability"
-semTools::reliabilityL2(est_4f_2or, "QOL")
+knitr::kable(as.data.frame(t(semTools::reliabilityL2(est_4f_2or, "QOL"))), digits = 3)
 ```
 
 ## Model Diagram

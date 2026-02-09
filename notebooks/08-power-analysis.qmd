@@ -75,6 +75,7 @@ increase to 1,000 or even 5,000 replications.
 
 ```{r}
 #| label: run-simulation
+#| cache: true
 my_modelci <- simsem::sim(100,
   n = nrow(df0),
   model = spe_4fb,
@@ -85,6 +86,12 @@ my_modelci <- simsem::sim(100,
   estimator = "WLSMV",
   seed = 123456
 )
+```
+
+```{r}
+#| label: save-simulation
+#| cache: false
+saveRDS(my_modelci, "../models/my_modelci.rds")
 ```
 
 ## Simulation Results
@@ -99,7 +106,7 @@ summaryPopulation(my_modelci)
 ### Overall Summary
 
 ```{r}
-#| label: tbl-sim-summary
+#| label: sim-summary
 #| tbl-cap: "Simulation summary for the power analysis"
 summary(my_modelci)
 ```
@@ -119,7 +126,8 @@ summaryShort(my_modelci)
 ```{r}
 #| label: tbl-cutoffs
 #| tbl-cap: "Fit index cutoffs at alpha = 0.05"
-getCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
+knitr::kable(as.data.frame(t(getCutoff(my_modelci, 0.05,
+  usedFit = c("srmr", "rmsea.scaled", "cfi.scaled")))), digits = 4)
 ```
 
 ### Power to Detect Misfit
@@ -127,7 +135,8 @@ getCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ```{r}
 #| label: tbl-power-fit
 #| tbl-cap: "Proportion of replications indicating worse fit than rule-of-thumb cutoffs"
-getPowerFit(my_modelci, cutoff = rule_of_thumb, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
+knitr::kable(as.data.frame(t(getPowerFit(my_modelci, cutoff = rule_of_thumb,
+  usedFit = c("srmr", "rmsea.scaled", "cfi.scaled")))), digits = 4)
 ```
 
 ### Sampling Distributions of Fit Indices
@@ -147,7 +156,7 @@ plotCutoff(my_modelci, 0.05, usedFit = c("srmr", "rmsea.scaled", "cfi.scaled"))
 ### Detailed Parameter Summary
 
 ```{r}
-#| label: tbl-param-summary
+#| label: param-summary
 #| tbl-cap: "Parameter estimates and power across replications (alpha = .05)"
 summaryParam(my_modelci, detail = TRUE, digits = 3)
 ```

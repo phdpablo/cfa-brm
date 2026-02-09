@@ -82,6 +82,7 @@ est_4f_bi <- cfa(spe_4f_bi,
 
 ```{r}
 #| label: save-fit-bifactor
+#| cache: false
 saveRDS(est_4f_bi, "../models/est_4f_bi.rds")
 ```
 
@@ -96,7 +97,7 @@ Look at standardized estimates, residual correlations, and MI to assess local fi
 ### Overall Fit and Parameter Estimates
 
 ```{r}
-#| label: tbl-summary-bifactor
+#| label: summary-bifactor
 #| tbl-cap: "Summary of the bifactor CFA model"
 summary(est_4f_bi, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```
@@ -106,10 +107,10 @@ summary(est_4f_bi, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
 ```{r}
 #| label: tbl-mi-bifactor
 #| tbl-cap: "Top modification indices for the bifactor model"
-modificationindices(est_4f_bi,
+knitr::kable(modificationindices(est_4f_bi,
   sort. = TRUE, minimum.value = 3.84,
   maximum.number = 20
-)
+), digits = 3)
 ```
 
 ### Residual Correlations
@@ -130,7 +131,7 @@ For the G factor in a bifactor model, omega from `psych::omegaFromSem()` is
 the appropriate reliability measure.
 
 ```{r}
-#| label: tbl-reliability-bifactor
+#| label: reliability-bifactor
 #| tbl-cap: "Reliability coefficients for the bifactor model (G factor)"
 psych::omegaFromSem(fit = est_4f_bi)
 ```

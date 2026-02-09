@@ -79,7 +79,7 @@ names(df0) <- column_labels
 ```{r}
 #| label: tbl-data-head
 #| tbl-cap: "First rows of the WHOQOL-BREF dataset"
-head(df0)
+knitr::kable(head(df0))
 ```
 
 ```{r}
@@ -95,13 +95,14 @@ str(df0)
 ```{r}
 #| label: tbl-descriptives
 #| tbl-cap: "Descriptive statistics for all WHOQOL-BREF items"
-describe(df0)
+knitr::kable(describe(df0), digits = 2)
 ```
 
 ### Save Data for Other Notebooks
 
 ```{r}
 #| label: save-data
+#| cache: false
 saveRDS(df0, "../data/whoqol_data.rds")
 ```
 

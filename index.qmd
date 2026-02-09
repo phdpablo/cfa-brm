@@ -25,10 +25,25 @@ citation:
 number-sections: true
 execute:
   echo: false
+  warning: false
+  message: false
 editor: 
   markdown: 
     wrap: 80
 ---
+
+```{r}
+#| label: setup-index
+#| include: false
+library(lavaan)
+library(semTools)
+library(semPlot)
+library(psych)
+library(simsem)
+source("R/formatting-functions.R")
+source("R/plot-themes.R")
+df0 <- readRDS("data/whoqol_data.rds")
+```
 
 ## Introduction
 
@@ -96,7 +111,14 @@ Q4_F ~~ Q3_F
 
 ### Model Evaluation
 
-{{< embed notebooks/03-model-4factor.qmd#tbl-summary-4f >}}
+```{r}
+#| label: summary-4f-index
+est_4fa <- readRDS("models/est_4fa.rds")
+summary(est_4fa,
+  fit.measures = TRUE,
+  standardized = TRUE, rsq = TRUE
+)
+```
 
 {{< embed notebooks/03-model-4factor.qmd#tbl-reliability-4f >}}
 
@@ -121,9 +143,16 @@ items alongside the four specific group factors. Factors are orthogonal
 
 ### Model Evaluation
 
-{{< embed notebooks/04-model-bifactor.qmd#tbl-summary-bifactor >}}
+```{r}
+#| label: summary-bifactor-index
+est_4f_bi <- readRDS("models/est_4f_bi.rds")
+summary(est_4f_bi, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
+```
 
-{{< embed notebooks/04-model-bifactor.qmd#tbl-reliability-bifactor >}}
+```{r}
+#| label: reliability-bifactor-index
+psych::omegaFromSem(fit = est_4f_bi)
+```
 
 ### Preliminary Evaluation
 
@@ -145,7 +174,11 @@ variance is fixed to zero due to convergence problems.
 
 ### Model Evaluation
 
-{{< embed notebooks/05-model-second-order.qmd#tbl-summary-2or >}}
+```{r}
+#| label: summary-2or-index
+est_4f_2or <- readRDS("models/est_4f_2or.rds")
+summary(est_4f_2or, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
+```
 
 {{< embed notebooks/05-model-second-order.qmd#tbl-reliability-2or >}}
 
@@ -163,7 +196,11 @@ identified as problematic. This section presents the revised model excluding Q5.
 
 ### Model Evaluation
 
-{{< embed notebooks/06-model-4factor-revised.qmd#tbl-summary-4fb >}}
+```{r}
+#| label: summary-4fb-index
+est_4fb <- readRDS("models/est_4fb.rds")
+summary(est_4fb, fit.measures = TRUE, standardized = TRUE, rsq = TRUE)
+```
 
 {{< embed notebooks/06-model-4factor-revised.qmd#tbl-reliability-4fb >}}
 
@@ -221,7 +258,11 @@ Look for Power > .8, Coverage 0.91–0.98, Rel Bias < |0.10| and Rel SE Bias
 attention. Thresholds are generally not parameters of interest.
 :::
 
-{{< embed notebooks/08-power-analysis.qmd#tbl-param-summary >}}
+```{r}
+#| label: param-summary-index
+my_modelci <- readRDS("models/my_modelci.rds")
+summaryParam(my_modelci, detail = TRUE, digits = 3)
+```
 
 ## References {.unnumbered}
 
