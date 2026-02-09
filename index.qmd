@@ -18,14 +18,12 @@ abstract: |
   Confirmatory factor analysis (CFA) is a fundamental method for evaluating the internal structural validity of measurement instruments. In most CFA applications, the measurement model serves as a means to an end rather than an end in itself. To select the appropriate model, prior validity evidence is crucial, and items are typically assessed on an ordinal scale, which has been used in the applied social sciences. However, textbooks on structural equation modeling (SEM) often overlook this specific case, focusing on applications estimable using maximum likelihood (ML) instead. Unfortunately, several popular commercial SEM software packages lack suitable solutions for handling this 'typical CFA', leading to confusion and suboptimal decision-making when conducting CFA in this context. This article conceptually contributes to this ongoing discussion by presenting a set of guidelines for conducting a typical CFA, drawing from recent empirical research. We provide a practical contribution by introducing and developing a tutorial example within the JASP and lavaan software platforms. Supplementary materials such as videos, files, and scripts are freely available.
 date: 03/13/2024
 bibliography: references.bib
-citation:
-  container-title: Best practices for your CFA
 number-sections: true
 execute:
-  echo: true       # Show all code (this is a tutorial)
+  echo: false
   warning: false
   message: false
-  cache: true      # Enable caching for faster rendering
+  cache: true
 editor: 
   markdown: 
     wrap: 80
