@@ -12,23 +12,6 @@ execute: # https://quarto.org/docs/computations/execution-options.html
 manuscript: # https://quarto.org/docs/manuscripts/authoring/rstudio.html
   article: index.qmd # Main manuscript file.
   # meca-bundle: true # Uncomment to generate MECA bundle for journal submission.
-  notebooks: # Individual analysis notebooks (rendered as supplementary material).
-    - notebook: notebooks/01-setup-data.qmd
-      title: "Setup and Data Loading"
-    - notebook: notebooks/02-population-model.qmd
-      title: "Population Model and DFI"
-    - notebook: notebooks/03-model-4factor.qmd
-      title: "4-Factor CFA Model"
-    - notebook: notebooks/04-model-bifactor.qmd
-      title: "Bifactor CFA Model"
-    - notebook: notebooks/05-model-second-order.qmd
-      title: "Second-Order CFA Model"
-    - notebook: notebooks/06-model-4factor-revised.qmd
-      title: "4-Factor Model (Revised)"
-    - notebook: notebooks/07-model-comparison.qmd
-      title: "Model Comparison"
-    - notebook: notebooks/08-power-analysis.qmd
-      title: "Power Analysis"
 
 bibliography: references.bib # https://quarto.org/docs/authoring/citations.html
 # File containing the bibliographic references in BibTeX format.
