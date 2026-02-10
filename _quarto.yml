@@ -6,16 +6,16 @@ project: # https://quarto.org/docs/manuscripts/
 execute: # https://quarto.org/docs/computations/execution-options.html
   freeze: auto # Automatically manage code execution based on changes.
   warning: false # Prevent R code chunk warnings from appearing in the output.
-  #cache: true # Enable caching of code chunks to speed up rendering on subsequent runs.
+  message: false # Prevent R code chunk messages from appearing in the output.
+  cache: true # Enable caching of code chunks to speed up rendering on subsequent runs.
 
 manuscript: # https://quarto.org/docs/manuscripts/authoring/rstudio.html
   article: index.qmd # Main manuscript file.
-  # meca-bundle: true # Uncomment to generate MECA bundle for journal submission.
+  meca-bundle: false # Generate MECA bundle for journal submission.
 
 bibliography: references.bib # https://quarto.org/docs/authoring/citations.html
 # File containing the bibliographic references in BibTeX format.
-csl: apa7ed.csl # Citation Style Language file defining the citation format (APA 7th ed.).
-# See others at https://www.zotero.org/styles
+csl: apa7ed.csl # Citation Style Language: see others at https://www.zotero.org/styles
 
 # Website configuration (optional, for GitHub Pages deployment)
 site-url: "https://phdpablo.github.io/cfa-brm/" # Edit your site URL.
@@ -25,41 +25,9 @@ repo-url: "https://github.com/phdpablo/cfa-brm/" # Edit your repo URL.
 open-graph: true # Generates Open Graph metadata for better social media previews.
 
 format: # https://quarto.org/docs/reference/formats/html.html
-  html: # Configuration for HTML output format.
-    toc: true # Includes a table of contents in the HTML output.
-    html-math-method: mathjax # Uses MathJax to render mathematical equations.
-    code-link: true # Adds a button to copy code chunks to the clipboard.
-    theme: # https://quarto.org/docs/output-formats/html-themes.html
-      light: flatly # Light color theme for the website.
-      dark: darkly # Dark color theme for the website.
-    number-sections: true # Adds section numbers to headings.
-    link-external-newwindow: true # Opens external links in a new browser tab.
-    fig-width: 5 # Default width (in inches) for figures in HTML output.
-    fig-height: 5 # Default height (in inches) for figures in HTML output.
-    fig-align: left # Default horizontal alignment for figures (left, center, right).
-    comments: # https://quarto.org/docs/output-formats/html-basics.html#commenting
-      hypothesis: true # Enables Hypothesis for collaborative annotations.
-  
-  docx: default # Word document output for journal submission.
-  
-  jats: default # JATS XML output for journal submission.
-  
-  pdf: # https://quarto.org/docs/reference/formats/pdf.html
-    documentclass: article # LaTeX document class to use for PDF output.
-    papersize: A4 # Paper size for the PDF.
-    top-level-division: section # Treats top-level headings as \section{} in LaTeX.
-    geometry: # Page margins and dimensions for the PDF.
-      - paperwidth=8.27in # Width of the paper.
-      - paperheight=11.69in # Height of the paper.
-      - left=1.25in # Left margin.
-      - textwidth=5.25in # Width of the text block.
-      - top=1.00in # Top margin.
-      - textheight=8.25in # Height of the text block.
-    toc: false # Disables the table of contents in the PDF output.
-    colorlinks: true # Colors hyperlinks in the PDF instead of using boxes.
-    fig-width: 5 # Default width (in inches) for figures in PDF output.
-    fig-height: 5 # Default height (in inches) for figures in PDF output.
-    fig-align: left # Default horizontal alignment for figures in PDF.
-    keep-tex: false # Keeps the intermediate .tex file generated during PDF creation.
+  html:
+    theme: spacelab # A clean, modern theme for HTML output.
+  docx: default # Default Word document output format for the manuscript.
+  pdf: default # Default PDF output format for the manuscript.
 
 editor: source # Sets the default editor mode to source in RStudio.
