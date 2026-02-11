@@ -12,9 +12,8 @@ _temp/
 _freeze/
 _manuscript/
 *_cache/
-index_files/
-site_libs/
-docs/
+/index_files/
+/site_libs/
 *.tex
 
 # Data (downloaded at runtime)
