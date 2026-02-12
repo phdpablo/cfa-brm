@@ -1,71 +1,43 @@
-# This file defines how to build a custom Docker image
-# based on the rocker/verse image for the article template.
+# Optimized Dockerfile for reproducible Quarto rendering
+# Base image: rocker/verse includes R, Quarto, Pandoc, and TinyTeX
+FROM rocker/verse:4.5.2
 
-# --- Base Image ---
-# Use the official rocker/verse version 4.5.1 as the starting point.
-# This image includes R, RStudio Server, Quarto, Pandoc, and TinyTeX pre-installed.
-FROM rocker/verse:4.4.2
-
-# --- Image Metadata ---
-# Add labels to the image for identification and documentation purposes.
-# These are useful metadata but do not affect the container's functionality.
 LABEL maintainer="Pablo Rogers <pablorogers@ufu.br>" \
-      version="4.4.2" \
-      description="Best practices for your confirmatory factor analysis: A JASP and lavaan tutorial. Behav Res 56, 6634–6654 (2024). https://doi.org/10.3758/s13428-024-02375-7"
+      version="4.5.2" \
+      description="https://doi.org/10.3758/s13428-024-02375-7"
 
-# --- renv Configuration ---
-# Set environment variables to configure where renv stores its cache
-# and the installed package library.
-# These paths are used later to create directories and mount volumes.
-ENV RENV_PATHS_CACHE=/renv/cache
-# Path for the global renv cache (stores .tar.gz of downloaded packages).
-ENV RENV_PATHS_LIBRARY=/renv/library
-# Path for the R package library installed by renv for this project.
+# renv configuration
+ENV RENV_PATHS_CACHE=/home/rstudio/renv/cache \
+    RENV_PATHS_LIBRARY_ROOT=/home/rstudio/renv/library
 
-# --- Create Directories and Set Permissions ---
-# Create the necessary directories for the project and renv paths.
-# Ensure the 'rstudio' user (default for rocker/verse) has read and write
-# permissions on these directories.
-# /project: Main working directory where the project will be mounted.
-RUN mkdir -p /project ${RENV_PATHS_CACHE} ${RENV_PATHS_LIBRARY} && \
-    chown -R rstudio:rstudio /project ${RENV_PATHS_CACHE} ${RENV_PATHS_LIBRARY}
+WORKDIR /home/rstudio
 
-# --- Set Working Directory ---
-# Set the default working directory inside the container.
-# All subsequent commands (COPY, RUN) will be executed here.
-WORKDIR /project
+# Copy renv files for package restoration
+COPY --chown=rstudio:rstudio renv.lock .
+COPY --chown=rstudio:rstudio .Rprofile .
+COPY --chown=rstudio:rstudio renv/activate.R renv/
 
-# --- Copy renv Configuration Files ---
-# Copy necessary renv files from the build context (your local system)
-# to the working directory inside the container.
-# These files are essential for renv to function correctly.
-COPY ../renv.lock renv.lock
-# The lock file defining the exact versions of R packages.
-COPY ../.Rprofile .Rprofile
-# The profile file that activates renv when R starts.
-COPY ../renv/activate.R renv/activate.R
-# The renv activation script.
-COPY ../renv/settings.json renv/settings.json
-# The renv settings for the project.
-
-# --- Restore R Packages via renv ---
-# Run the R command to restore R packages listed in renv.lock.
-# This installs the packages at the versions specified into the directory
-# defined by RENV_PATHS_LIBRARY.
-# The -s flag makes the R execution quieter.
+# Restore R packages during build
+USER rstudio
 RUN R -s -e "renv::restore()"
+USER root
 
-# --- Install Additional LaTeX Packages ---
-# Run an R command to install specific LaTeX packages using TinyTeX.
-# These packages are often needed for rendering Quarto documents
-# to PDF and might not be included in the default TinyTeX installation
-# or are not managed directly by renv (which manages R packages).
-# tinytex::tlmgr_install is the R function from the 'tinytex' package
-# that calls the TeX Live manager (tlmgr) to install LaTeX packages.
-# Update tlmgr and LaTeX kernel first
-RUN tlmgr update --self --all
-# Then install the required packages
-RUN R -e "tinytex::tlmgr_install(c('amsfonts', 'unicode-math', 'booktabs', 'caption', 'float', 'pgf', 'environ', 'pdfcol', 'fontawesome5', 'tcolorbox'))"
+# Copy all project files with correct ownership
+COPY --chown=rstudio:rstudio . .
 
-# Note: Port 8787 (default for RStudio Server) is automatically exposed by the base image.
-# An explicit CMD is not needed as the base image already defines the command to start RStudio Server.
+# Set working directory
+WORKDIR /home/rstudio
+
+# Fix ownership and permissions of the project directory and contents
+RUN chown -R rstudio:rstudio /home/rstudio && \
+    find /home/rstudio -type d -exec chmod 755 {} \; && \
+    find /home/rstudio -type f -exec chmod 644 {} \;
+
+# Install additional LaTeX packages via tinytex
+# Note: tlmgr_update runs on first container start via init-latex.sh (faster than build)
+RUN R -e "tinytex::tlmgr_install(c('unicode-math', 'booktabs', 'caption', 'float', 'pdfcol', 'fontawesome5', 'tcolorbox', 'lualatex-math', 'luatexbase', 'amssymb')); tinytex::tlmgr_update()"
+
+
+# Copy initialization script for LaTeX sync on first run
+COPY init-latex.sh /init-latex.sh
+RUN chmod +x /init-latex.sh

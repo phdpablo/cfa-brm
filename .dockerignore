@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Docker
+docker/
+
+# R and renv (but keep renv.lock and renv/activate.R)
+.Rhistory
+.RData
+.Rproj.user
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+renv/staging/
+
+# Quarto and builds
+.quarto/
+_book/
+_site/
+_temp/
+_freeze/
+_manuscript/
+*_cache/
+/index_files/
+/site_libs/
+*.tex
+
+# Management
+adm/
+jasp/
