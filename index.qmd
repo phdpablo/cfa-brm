@@ -19,14 +19,6 @@ abstract: |
 date: 03/13/2024
 bibliography: references.bib
 number-sections: true
-execute:
-  echo: false
-  warning: false
-  message: false
-  cache: true
-editor: 
-  markdown: 
-    wrap: 80
 ---
 
 ## Introduction

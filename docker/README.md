@@ -1,51 +1,111 @@
-## Docker Environment for Reproducible Research
+# Docker Scripts for RStudio Environment
 
-This directory contains the configuration files needed to create a fully reproducible R/RStudio/Quarto environment using Docker. This setup ensures that your research project runs in the same computational environment, regardless of the operating system (Windows, macOS, Linux) being used.
+Three simple scripts to manage your containerized RStudio workflow:
 
-### What's Included
+## `start.sh` — Resume or Create Container
 
--   **`Dockerfile`**: Defines the custom Docker image, based on `rocker/verse:4.4.2`, pre-configured with necessary R packages (via `renv`) and LaTeX dependencies for Quarto.
--   **`docker-compose.yml`**: An orchestration file that simplifies running the Docker container. It handles port mapping, volume mounting for data persistence, and setting necessary environment variables.
--   **`start.bat` & `start.sh`**: Simple launcher scripts for Windows and Unix-like systems (macOS, Linux), respectively. These scripts automate finding an available IP, starting the environment, and opening RStudio in your browser.
--   **`stop.bat` & `stop.sh`**: Simple scripts to stop and clean up the running Docker container for Windows and Unix-like systems.
+Starts (or resumes if paused) the RStudio container and opens it in your browser.
 
-### Prerequisites
+```bash
+./start.sh
+```
 
-Before using this environment, ensure you have the following installed on your machine:
+**Behavior:**
+- If container exists but is paused → resumes it (preserves all data)
+- If container doesn't exist → creates new one from image
+- Automatically finds available IP (handles multiple instances)
+- Opens RStudio in default browser at `http://127.0.0.x:8787`
 
-1.  **Docker**: Download and install Docker Desktop for your operating system from the official Docker website (<https://docs.docker.com/get-docker/>). Make sure it is running.
+## `stop.sh` — Pause Container (Preserve Data)
 
-### Quick Start
+Pauses the container. All files, caches, and rendered outputs remain inside.
 
-1.  **Open a Terminal/Command Prompt:**
-    -   **Windows:** Open Command Prompt (`cmd`) or PowerShell. Navigate (`cd`) to this `docker` directory (e.g., `C:\path\to\your\cfa-brm\docker`).
-    -   **macOS/Linux:** Open your terminal application. Navigate (`cd`) to this `docker` directory (e.g., `/path/to/your/cfa-brm/docker`).
-2.  **Launch the Environment:**
-    -   **Windows:** Double-click the `start.bat` file, or run `start.bat` in the terminal.
-    -   **macOS/Linux:** Run `./start.sh` in the terminal (you might need to make it executable first with `chmod +x start.sh`).
-3.  **Access RStudio:**
-    -   The script will automatically find an available IP (starting from 127.0.0.1), start the container, and open your default web browser to `http://127.0.0.1:8787`, for example.
-    -   You should see the RStudio interface. **No login is required**; you are automatically logged in as the `rstudio` user.
-    -   The files from your main project directory (`cfa-brm`) will be available in the RStudio file pane under `/home/rstudio/project`.
-4.  **Work on Your Project:**
-    -   Open the `cfa-brm.Rproj` file to activate the R project.
-    -   Open and edit your Quarto files (`.qmd`).
-    -   Run `quarto render` in the RStudio terminal to build your report.
-5.  **Stop the Environment:**
-    -   When you are finished working:
-        -   **Windows:** Double-click the `stop.bat` file, or run `stop.bat` in the terminal.
-        -   **macOS/Linux:** Run `./stop.sh` in the terminal.
-    -   This stops the container and cleans up its resources. Your project files and installed packages are safely stored on your computer due to volume persistence.
+```bash
+./stop.sh
+```
 
-### How It Works (Behind the Scenes)
+**Behavior:**
+- Container is paused (not deleted)
+- All data persists
+- Next `./start.sh` resumes exactly where you left off
+- Low overhead, perfect for daily workflows
 
--   **Image Building:** The first time you run `start.bat`/`start.sh`, Docker Compose reads the `Dockerfile` and builds a custom image. This involves downloading the base `rocker/verse` image, installing LaTeX packages, and restoring R packages listed in your project's `renv.lock` file. This process can take several minutes. Subsequent starts will be much faster.
--   **Container Runtime:** Docker Compose then starts a container based on this image.
--   **IP Mapping:** The script finds an available IP and maps it to port 8787 inside the container (where RStudio Server runs). This prevents conflicts if you run multiple projects.
--   **Volume Persistence:** Several directories are mounted as volumes:
-    -   Your main project folder (`..`) is mounted to `/home/rstudio/project`, ensuring all your files are accessible and changes are saved directly to your computer.
-    -   Special volumes are mounted for `renv`'s cache and library, storing downloaded and installed R packages. This means packages are installed only once and reused.
-    -   Directories for RStudio's settings (`~/.config`, `~/.local`, `~/.rstudio`, `~/.R`) are mounted to local folders (`./cache/...`) to preserve your RStudio preferences and layout between sessions for this project.
--   **Environment:** Necessary environment variables like `DISABLE_AUTH=true` are set to simplify access.
+## `clean.sh` — Delete Container (Start Fresh)
 
-This setup provides a robust, persistent, and easy-to-use environment tailored for reproducible research with Quarto and R.
+Completely removes the container and all data inside. Use before extracting final outputs.
+
+```bash
+./clean.sh
+```
+
+**Behavior:**
+- Asks for confirmation
+- Deletes container and networks
+- Next `./start.sh` creates fresh container from image
+- Use when you want to reset to clean state
+
+## `extract.sh` — Backup Outputs to Host
+
+Copies rendered files from container to host before cleaning.
+
+```bash
+./extract.sh
+```
+
+**Copies:**
+- `_output/` (rendered documents)
+- `_files/` (generated assets)
+- `*.html` files
+
+Saves to `./extracted_output/`
+
+---
+
+## Typical Workflow
+
+### Session-to-session (recommended for dev)
+```bash
+./start.sh          # Resume work
+# ... edit, render, work in RStudio ...
+./stop.sh           # Pause (data stays)
+
+# Later:
+./start.sh          # Everything is still there
+```
+
+### Clean slate (when updating Dockerfile or resetting)
+```bash
+./extract.sh        # Backup outputs to host
+./clean.sh          # Remove container
+./start.sh          # Fresh container from updated image
+```
+
+### For reproducibility
+- `stop` / `start` preserves your session
+- `clean` forces rebuild from image (guarantees reproducibility)
+- Always `extract` before `clean` if you need outputs
+
+---
+
+## Data Persistence
+
+**What persists between stop/start:**
+- Rendered HTML files (in `/home/rstudio/project/`)
+- R caches and renv packages (built into image)
+- Any files created in container
+
+**What doesn't persist after `clean.sh`:**
+- Anything in the container (everything is deleted)
+- Outputs must be extracted with `./extract.sh` first
+
+**What never persists (ephemeral):**
+- RStudio session state (temporary, resets on start)
+- Console history (unless you save explicitly)
+
+---
+
+## Notes
+
+- All scripts use `docker compose` with project name isolation
+- Multiple containers can run simultaneously on different IPs
+- Change file permissions: `chmod +x *.sh` if needed
