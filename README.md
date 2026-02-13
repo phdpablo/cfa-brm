@@ -1,87 +1,143 @@
-# Best practices for your confirmatory factor analysis: A JASP and lavaan tutorial
+# Best Practices for Your Confirmatory Factor Analysis: A JASP and lavaan Tutorial
 
-[![Cite BRM Article](https://img.shields.io/badge/Cite%20BRM%20Article-PDF-red)](https://link.springer.com/article/10.3758/s13428-024-02375-7) [![GitHub Pages](https://img.shields.io/github/deployments/phdpablo/cfa-brm/github-pages?label=GitHub%20Pages)](https://phdpablo.github.io/cfa-brm/) [![OSF](https://img.shields.io/badge/OSF-10.17605/OSF.IO/CV8WB-blue)](https://osf.io/cv8wb/)  [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/) [![R version](https://img.shields.io/badge/R-4.5.2-orange)](https://www.r-project.org/) [![Quarto](https://img.shields.io/badge/Quarto-1.8.82-orange)](https://quarto.org/) [![Docker](https://img.shields.io/badge/Docker-4.60.1-orange)](https://www.docker.com/) [![renv](https://img.shields.io/badge/renv-1.1.7-orange)](https://rstudio.github.io/renv/)
+[![Cite BRM Article](https://img.shields.io/badge/Cite%20BRM%20Article-PDF-red)](https://link.springer.com/article/10.3758/s13428-024-02375-7) [![GitHub Pages](https://img.shields.io/github/deployments/phdpablo/cfa-brm/github-pages?label=GitHub%20Pages)](https://phdpablo.github.io/cfa-brm/) [![OSF](https://img.shields.io/badge/OSF-10.17605/OSF.IO/CV8WB-blue)](https://osf.io/cv8wb/) [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/) [![R version](https://img.shields.io/badge/R-4.5.2-orange)](https://www.r-project.org/) [![Quarto](https://img.shields.io/badge/Quarto-1.8.25-orange)](https://quarto.org/) [![Docker](https://img.shields.io/badge/Docker-4.60.1-orange)](https://www.docker.com/) [![renv](https://img.shields.io/badge/renv-1.1.7-orange)](https://rstudio.github.io/renv/)
 
-## Repository Structure
+## 📖 About
+
+This repository contains the **complete reproducible materials** for the tutorial "Best Practices for Your Confirmatory Factor Analysis: A JASP and lavaan Tutorial" published in *Behavior Research Methods* (2024).
+
+The tutorial provides a comprehensive guide for conducting Confirmatory Factor Analysis (CFA) with ordinal data in applied social sciences, demonstrating best practices using JASP and lavaan/R.
+
+### Key Features
+
+- ✅ **Six-step methodology** for conducting CFA in applied social sciences
+- ✅ **Reproducible document** using Quarto with embedded R code
+- ✅ **Pre-rendered website** in `docs/` folder (no need to wait for simulations)
+- ✅ **JASP files** for point-and-click analysis
+- ✅ **Docker environment** for computational reproducibility verification
+
+## 🔗 Access the Materials
+
+| Resource | Description | Link |
+| :-- | :-- | :-- |
+| **📄 Published Article** | Original paper in *Behavior Research Methods* | [doi.org/10.3758/s13428-024-02375-7](https://doi.org/10.3758/s13428-024-02375-7) |
+| **🌐 Tutorial Website** | Pre-rendered complete tutorial | [phdpablo.github.io/cfa-brm](https://phdpablo.github.io/cfa-brm/) |
+| **📦 OSF Project** | Supplementary materials | [osf.io/cv8wb](https://osf.io/cv8wb/) |
+| **📊 Dataset** | WHOQOL-BREF data (n=1,047) | [Mendeley Data](https://data.mendeley.com/datasets/rdky78bk8r/2) |
+| **🎯 Interactive Showcase** | Visual summary | [phdpablo.github.io/cfa-brm-showcase](https://phdpablo.github.io/cfa-brm-showcase/) |
+| **🎬 Video Overview** | YouTube Overview | [youtu.be/QFzbf4KNNuE](https://youtu.be/QFzbf4KNNuE) |
+
+## 📁 Repository Structure
 
 ```
+
 cfa-brm/
-├── index.qmd                       # Main article (narrative only, no code)
-├── _quarto.yml                     # Quarto Manuscript configuration
-├── notebooks/                      # Modular analysis notebooks
-│   ├── 01-setup-data.qmd          #   Data loading and exploration
-│   ├── 02-population-model.qmd    #   Population model and DFI
-│   ├── 03-model-4factor.qmd       #   4-factor correlated CFA model
-│   ├── 04-model-bifactor.qmd      #   Bifactor CFA model
-│   ├── 05-model-second-order.qmd  #   Second-order CFA model
-│   ├── 06-model-4factor-revised.qmd # Revised 4-factor (without Q5)
-│   ├── 07-model-comparison.qmd    #   Model comparison
-│   └── 08-power-analysis.qmd      #   Post hoc power analysis
-├── R/                              # Reusable utility functions
-│   ├── formatting-functions.R      #   Fit indices, reliability, loadings
-│   └── plot-themes.R              #   semPlot diagram helpers
-├── data/                           # Cached datasets (generated at runtime)
-├── models/                         # Saved lavaan fit objects (generated at runtime)
-├── styles.css                      # Custom CSS for the manuscript
-├── references.bib                  # BibTeX references
-├── apa7ed.csl                      # APA 7th edition citation style
-├── jasp/                           # JASP analysis files
-├── renv.lock                       # R package versions (renv)
-└── docker/                         # Docker configuration
+├── index.qmd              \# Complete tutorial document with embedded code
+├── _quarto.yml            \# Quarto project configuration
+├── docs/                  \# Pre-rendered website (GitHub Pages)
+├── jasp/                  \# JASP analysis files
+├── docker/                \# Docker configuration for reproducibility
+├── renv.lock              \# R package versions
+├── .Rprofile              \# renv activation
+└── references.bib         \# Bibliography
+
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-1. **Restore packages**:
-   ```r
-   renv::restore()
-   ```
+### Option 1: View Pre-Rendered Website (Fastest)
 
-2. **Render the full manuscript** (article + notebooks):
-   ```bash
-   quarto render
-   ```
+Simply visit the deployed website - no installation needed:
 
-3. **Render a single notebook** (e.g., the 4-factor model):
-   ```bash
-   quarto render notebooks/03-model-4factor.qmd
-   ```
+**[https://phdpablo.github.io/cfa-brm/](https://phdpablo.github.io/cfa-brm/)**
 
-Output is placed in `docs/` for GitHub Pages deployment.
+The `docs/` folder contains the complete pre-rendered tutorial, including all time-intensive simulations.
 
-## How It Works
+### Option 2: Local Rendering
 
-- **Article** (`index.qmd`): A narrative-only document with `echo: false`. All results are embedded from notebooks via `{{< embed >}}` syntax. No code is visible.
-- **Article Notebook** (`index-preview.html`): Auto-generated by Quarto Manuscript, showing the article with all code visible.
-- **Notebooks** (`notebooks/`): Self-contained, didactic analysis files with code visible by default (`code-fold: show`). Each notebook can be rendered independently.
-- **Utility functions** (`R/`): Extracted helper functions for formatting tables, extracting fit indices, and creating path diagrams.
+**Prerequisites**: R 4.5.2+, RStudio, Quarto 1.8+
 
-## Citation
+```bash
+# Clone repository
+git clone https://github.com/phdpablo/cfa-brm.git
+cd cfa-brm
 
-If you use this template, please cite it as:
+# Restore R packages
+R -e "renv::restore()"
 
-Rogers, P. Best practices for your confirmatory factor analysis: A JASP and lavaan tutorial. Behav Res 56, 6634–6654 (2024). <https://doi.org/10.3758/s13428-024-02375-7>
+# Render tutorial (⚠️ 60-90 minutes due to simulations)
+quarto render
+```
 
-**BibTex:**
 
-``` r
-@article{rogers2024c,
-  title = {Best Practices for Your Confirmatory Factor Analysis: {{A JASP}} and Lavaan Tutorial},
-  shorttitle = {Best Practices for Your Confirmatory Factor Analysis},
+### Option 3: Docker (Reproducibility Verification)
+
+**Prerequisites**: Docker Desktop
+
+```bash
+cd docker
+./start.sh         # macOS/Linux
+start.bat          # Windows
+```
+
+Access RStudio Server at `http://127.0.0.1:8787` (no password).
+
+See [`docker/README.md`](docker/README.md) for details.
+
+### Option 4: JASP (Point-and-Click)
+
+1. Download JASP from [jasp-stats.org](https://jasp-stats.org/)
+2. Open files in `jasp/` folder
+3. Explore analyses via graphical interface
+
+#### ⚠️ Reproducibility Warning
+
+**These analyses were developed in JASP v0.17.1**. For full reproducibility, use [JASP v0.17.1](https://github.com/jasp-stats/jasp-desktop/releases/tag/v0.17.1)
+
+## 🔬 Why Pre-Rendered?
+
+The `docs/` folder contains pre-rendered outputs because:
+
+- ⏱️ **DFI calculation**: ~20-30 minutes
+- ⏱️ **Power analysis**: ~30-40 minutes
+- ✅ **Immediate access**: No waiting for simulations
+- 🔄 **GitHub Pages**: Deployed from `docs/` on `main` branch
+
+
+## 📄 Citation
+
+Rogers, P. (2024). Best practices for your confirmatory factor analysis: A JASP and lavaan tutorial. *Behavior Research Methods*, *56*(6), 6634–6654. https://doi.org/10.3758/s13428-024-02375-7
+
+**BibTeX:**
+
+```bibtex
+@article{rogers2024,
+  title = {Best Practices for Your Confirmatory Factor Analysis: {A JASP} and Lavaan Tutorial},
   author = {Rogers, Pablo},
-  date = {2024-03-13},
-  journaltitle = {Behavior Research Methods},
-  shortjournal = {Behav Res},
-  issn = {1554-3528},
-  doi = {10.3758/s13428-024-02375-7},
-  url = {https://link.springer.com/10.3758/s13428-024-02375-7},
-  urldate = {2024-03-14},
-  langid = {english},
-  keywords = {ProjetoOS},
-  file = {C:\Users\pablo\OneDrive\Zotero\CFA\Rogers_2024_Best practices for your confirmatory factor analys.pdf}
+  year = {2024},
+  journal = {Behavior Research Methods},
+  volume = {56},
+  number = {6},
+  pages = {6634--6654},
+  doi = {10.3758/s13428-024-02375-7}
 }
 ```
 
-## License
+## 🔧 Technical Details
 
-This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License - see the [LICENSE](LICENSE) file for details.
+**Software**: R 4.5.2 | Quarto 1.8.25 | Docker 4.60.1 | renv 1.1.7
+
+**Key packages**: lavaan, semTools, dynamic, simsem, semPlot
+
+**Docker image**: `phdpablo/cfa-brm:4.5.2`
+
+## 📧 Contact
+
+**Pablo Rogers, Ph.D.**
+Universidade Federal de Uberlândia (UFU)
+📧 pablorogers@ufu.br
+🌐 [ORCID: 0000-0002-0093-3834](https://orcid.org/0000-0002-0093-3834)
+
+## 📜 License
+
+[Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/)
