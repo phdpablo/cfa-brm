@@ -2,7 +2,6 @@
 
 This directory contains Docker configuration files to **audit and verify the computational reproducibility** of the "Best Practices for CFA" tutorial.
 
-
 ## 📋 Overview
 
 The Docker image serves as a **reproducibility checkpoint**, containing:
@@ -13,13 +12,11 @@ The Docker image serves as a **reproducibility checkpoint**, containing:
 
 **Important**: The image was created for **verification purposes**. Due to the time-consuming nature of Monte Carlo simulations in the DFI and power analysis sections, the image also includes pre-rendered outputs (`docs/` folder) in case users do not wish to verify reproducibility by re-rendering the Quarto documents within the container.
 
-
 ## 🎯 Purpose
 
 1. **Audit reproducibility**: Verify that all analyses can be reproduced
 2. **Preserve computational environment**: Capture exact package versions and dependencies
 3. **Learning**: Allows users to follow the implementation logic of the commands and analysis of the CFA proposed in the article
-
 
 ## 📦 What's Included
 
@@ -30,7 +27,6 @@ The Docker image contains:
 - **Pre-built site**: Complete `docs/` folder with rendered outputs
 - **Repository files**: All source files, scripts, and data embedded in the image
 
-
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -40,11 +36,9 @@ The Docker image contains:
 - **Windows/Mac**: Download from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
 - **Linux**: Follow instructions at [docs.docker.com/engine/install](https://docs.docker.com/engine/install/)
 
-
 ### Using Helper Scripts (Recommended)
 
 If you're unfamiliar with Docker commands, use the provided scripts:
-
 
 #### **Start the Container**
 
@@ -55,9 +49,10 @@ If you're unfamiliar with Docker commands, use the provided scripts:
 # Windows
 start.bat
 ```
+
 This script will:
 
-- Pull the Docker image `phdpablo/cfa-brm:4.5.2` (includes all packages)
+- Build/pull the Docker image `phdpablo/cfa-brm:4.5.2` (includes all repository files)
 - Start a container named `cfa-brm`
 - Open RStudio Server on `http://127.0.0.1:8787`
 - **No credentials needed** (authentication disabled)
@@ -72,6 +67,7 @@ This script will:
 # Windows
 stop.bat
 ```
+
 This script will:
 
 - Stop the running container
@@ -84,7 +80,6 @@ This script will:
 
 The repository uses `docker-compose.yml` for container orchestration.
 
-
 #### **1. Start the Container**
 
 From the repository root directory:
@@ -92,11 +87,13 @@ From the repository root directory:
 ```bash
 docker-compose -f docker/docker-compose.yml up -d
 ```
+
 **What this does**:
 
-- Pull the image
+- Builds the image if not present (using `docker/Dockerfile`)
 - Creates container named `cfa-brm`
 - Exposes RStudio Server on `http://127.0.0.1:8787`
+- Mounts persistent volumes for LaTeX packages and RStudio cache
 - Disables authentication (no password required)
 
 
@@ -130,16 +127,23 @@ docker-compose -f docker/docker-compose.yml start
 docker-compose -f docker/docker-compose.yml down
 ```
 
+**Note**: This preserves the `texlive_data` volume. To remove volumes:
+
+```bash
+docker-compose -f docker/docker-compose.yml down -v
+```
+
+
 ### Using Docker Commands Directly
 
 If you prefer manual Docker commands:
-
 
 #### **1. Pull the Image**
 
 ```bash
 docker pull phdpablo/cfa-brm:4.5.2
 ```
+
 
 #### **2. Run the Container**
 
@@ -150,6 +154,7 @@ docker run -d \
   -e DISABLE_AUTH=true \
   phdpablo/cfa-brm:4.5.2
 ```
+
 **Parameters explained**:
 
 - `-d`: Run in detached mode (background)
@@ -166,7 +171,6 @@ http://127.0.0.1:8787
 ```
 
 No credentials required.
-
 
 #### **4. Stop the Container**
 
@@ -201,19 +205,19 @@ Once inside RStudio Server:
 ```bash
 quarto render
 ```
-This will regenerate all outputs and verify reproducibility.
 
+This will regenerate all outputs and verify reproducibility.
 
 ### **Option 2: Render from RStudio GUI**
 
 1. The project is already open (`cfa-brm.Rproj`)
 2. Open the `Build` tab (top-right panel)
-3. Click `Render Project`
+3. Click `Render Website`
 
 ### **Expected Behavior**
 
 - ✅ **Quick render**: Most files render in seconds/minutes
-- ⚠️ **Slow sections**: DFI and power analysis simulations may take 40-60+ minutes
+- ⚠️ **Slow sections**: DFI and power analysis simulations may take 30-60+ minutes
 - ✅ **Identical outputs**: The rendered files will replace the pre-compiled `docs/` folder.
 
 ## 📊 About the Simulations
@@ -221,13 +225,11 @@ This will regenerate all outputs and verify reproducibility.
 The tutorial includes two **computationally intensive Monte Carlo simulations**:
 
 1. **Dynamic Fit Index (DFI) calculation**: ~20-30 minutes
-2. **Power analysis for CFA models**: ~20-30 minutes
-
-*Note:* if the user wishes to render the project without the simulations, they simply need to insert the flag `#| eval: false` in the corresponding chunks (7, 46-51)
+2. **Power analysis for CFA models**: ~30-40 minutes
 
 **Why pre-rendered outputs are included**:
 
-- Full rebuild could take 40-60+ minutes on typical hardware
+- Full rebuild could take 60-90+ minutes on typical hardware
 - Allows quick verification of non-simulation components
 - Users can still verify reproducibility by re-rendering
 
@@ -236,7 +238,7 @@ The tutorial includes two **computationally intensive Monte Carlo simulations**:
 
 ### **Dockerfile Structure**
 
-The `Dockerfile` uses an optimized process:
+The `Dockerfile` uses an optimized build process:
 
 1. **Base image**: `rocker/verse:4.5.2` (R + RStudio + Quarto + TinyTeX)
 2. **renv restoration**: Packages restored during build via `renv::restore()`
@@ -245,14 +247,17 @@ The `Dockerfile` uses an optimized process:
 5. **Repository files**: All source files copied into image
 6. **Initialization script**: `init-latex.sh` syncs LaTeX on first start
 
-
 ### **Docker Compose Configuration**
 
 Key features of `docker-compose.yml`:
 
+- **Persistent volumes**:
+    - `texlive_data`: Preserves LaTeX packages across container restarts
+    - `./cache/.rstudio`: Caches RStudio session data locally
 - **No authentication**: `DISABLE_AUTH=true` for easy access
 - **Localhost binding**: Port `127.0.0.1:8787` for security
 - **Automatic restart**: `restart: unless-stopped` keeps container running
+- **Custom entrypoint**: `init-latex.sh` initializes LaTeX before starting RStudio
 
 
 ### **Package Management Strategy**
@@ -271,7 +276,6 @@ Unlike typical development containers, this image:
 - ✅ **Self-contained**: No external file mounting required for verification
 - ✅ **Reproducible**: Same files in every container instance
 - ⚠️ **Non-persistent**: Changes inside container are lost on delete (by design)
-
 
 ## 🔍 Troubleshooting
 

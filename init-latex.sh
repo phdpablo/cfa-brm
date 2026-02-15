@@ -1,10 +1,8 @@
 #!/bin/bash
 
 # This script regenerates LaTeX formats on first container start.
-# Subsequent starts are instant (uses lock file).
-# Much faster than tlmgr_update: only regenerates formats, doesn't update packages.
 
-LOCK_FILE="/home/rstudio/.latex_fmt_synced"
+LOCK_FILE="/usr/local/texlive/.latex_fmt_synced"
 
 if [ ! -f "$LOCK_FILE" ]; then
   echo "🔄 Syncing LaTeX formats on first run (takes ~30-40 seconds)..."

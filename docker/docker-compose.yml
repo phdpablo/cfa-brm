@@ -1,31 +1,14 @@
 services:
+  # This service runs phdpablo/cfa-brm, which is an RStudio Server image with LaTeX support, suitable for rendering the manuscript in Article format. It includes a TeX Live installation and R environment management with renv.
   article:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    
     image: phdpablo/cfa-brm:4.5.2
     container_name: cfa-brm
-    
+    # The build context and Dockerfile are commented out since we are using a pre-built image from Docker Hub. If you want to customize the image, you can uncomment these lines and provide your own Dockerfile.
     ports:
       - 127.0.0.1:8787:8787
-    
-    volumes:
-      # TeX Live cache (survives container recreation)
-      - texlive_data:/usr/local/texlive
-      # Optional: RStudio session cache (local to project)
-      - ./cache/.rstudio:/home/rstudio/.rstudio
-    
+    # The environment variables disable authentication for RStudio Server and set up paths for renv, which is used for managing R package dependencies. This allows for a smoother experience when working with the manuscript project.
     environment:
       - DISABLE_AUTH=true
       - RENV_PATHS_CACHE=/home/rstudio/renv/cache
       - RENV_PATHS_LIBRARY_ROOT=/home/rstudio/renv/library
-    
-    # Run init-latex.sh which syncs LaTeX on first start, then starts RStudio
-    entrypoint: /init-latex.sh
-    
     restart: unless-stopped
-
-volumes:
-  texlive_data:
-    name: texlive_data

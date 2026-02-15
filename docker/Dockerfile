@@ -1,12 +1,12 @@
-# Optimized Dockerfile for reproducible Quarto rendering
 # Base image: rocker/verse includes R, Quarto, Pandoc, and TinyTeX
 FROM rocker/verse:4.5.2
 
+# Metadata about the image
 LABEL maintainer="Pablo Rogers <pablorogers@ufu.br>" \
       version="4.5.2" \
       description="https://doi.org/10.3758/s13428-024-02375-7"
 
-# renv configuration
+# Set environment variables for renv paths
 ENV RENV_PATHS_CACHE=/home/rstudio/renv/cache \
     RENV_PATHS_LIBRARY_ROOT=/home/rstudio/renv/library
 
@@ -34,9 +34,7 @@ RUN chown -R rstudio:rstudio /home/rstudio && \
     find /home/rstudio -type f -exec chmod 644 {} \;
 
 # Install additional LaTeX packages via tinytex
-# Note: tlmgr_update runs on first container start via init-latex.sh (faster than build)
 RUN R -e "tinytex::tlmgr_install(c('unicode-math', 'booktabs', 'caption', 'float', 'pdfcol', 'fontawesome5', 'tcolorbox', 'lualatex-math', 'luatexbase', 'amssymb')); tinytex::tlmgr_update()"
-
 
 # Copy initialization script for LaTeX sync on first run
 COPY init-latex.sh /init-latex.sh
